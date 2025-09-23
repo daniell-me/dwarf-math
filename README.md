@@ -1,33 +1,33 @@
-# frontend
+# Dwarf Math
 
-This template should help get you started developing with Vue 3 in Vite.
+A website for performing complex calculations and guiding decision making while playing video games.
 
-## Recommended IDE Setup
+## Tech Stack
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Vue 3** with TypeScript
+- **Pinia** for state management
+- **Vue Router** for navigation
+- **Vite** for build tooling
+- **GitHub Pages** for hosting
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Development
 
 ```sh
+# Install dependencies
 npm install
-```
 
-### Compile and Hot-Reload for Development
-
-```sh
+# Start development server
 npm run dev
-```
 
-### Type-Check, Compile and Minify for Production
-
-```sh
+# Build for production
 npm run build
+
+# Type checking
+npm run type-check
 ```
+
+## Deployment
+
+The site is automatically deployed to GitHub Pages via GitHub Actions when changes are pushed to the main branch.
+
+**Live site:** https://daniell-me.github.io/dwarf-math/
