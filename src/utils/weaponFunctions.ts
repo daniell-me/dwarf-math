@@ -12,3 +12,11 @@ export function getValidUpgradesForWeapon(weapon: Weapon, allUpgrades: Upgrade[]
     return upgrade.tags.some(upgradeTag => weapon.tags.includes(upgradeTag))
   })
 }
+
+export function findWeaponByName(weapons: Weapon[], name: string): Weapon {
+  const weapon = weapons.find(w => w.name === name)
+  if (!weapon) {
+    throw new Error(`Weapon not found: ${name}`)
+  }
+  return weapon
+}
