@@ -19,6 +19,13 @@ import { RouterView } from 'vue-router'
 
   --vt-c-indigo: #2c3e50;
 
+  /* Rarity colors */
+  --rarity-common: #cccccc;
+  --rarity-uncommon: #76cd00;
+  --rarity-rare: #29d9dc;
+  --rarity-epic: #b360d4;
+  --rarity-legendary: #ff5600;
+
   --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
   --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
   --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
