@@ -5,6 +5,7 @@ import type { Weapon, CharacterStats, Upgrade } from '@/data/types'
 import { calculateDPS, calculateDPSWithStatUpgrade } from '@/services/calculations'
 import { getValidUpgradesForWeapon } from '@/utils/weaponFunctions'
 import WeaponRow from '@/components/WeaponRow.vue'
+import RarityHeader from '@/components/RarityHeader.vue'
 import { ref } from 'vue'
 
 const characterStats = ref<CharacterStats>({ ...defaultCharacterStats })
@@ -29,6 +30,8 @@ function getValidUpgrades(weapon: Weapon): Upgrade[] {
 <template>
   <main>
     <h1>Dwarf Math - Weapon Damage Calculator</h1>
+
+    <RarityHeader />
 
     <div class="weapon-list">
       <WeaponRow

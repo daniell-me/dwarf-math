@@ -44,14 +44,17 @@ defineProps<{
   background: var(--color-background-mute);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 0.75rem;
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .weapon-name {
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
   font-weight: bold;
   color: var(--color-heading);
   text-align: center;
@@ -60,7 +63,7 @@ defineProps<{
 .weapon-stats {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .stat-row {
