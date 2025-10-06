@@ -20,7 +20,12 @@ export const WeaponTag = {
   drone: 'drone',
   acid: 'acid',
   electrical: 'electrical',
-  fire: 'fire'
+  fire: 'fire',
+  cold: 'cold',
+  plasma: 'plasma',
+  explosive: 'explosive',
+  throwable: 'throwable',
+  turret: 'turret'
 } as const
 
 export type WeaponTag = typeof WeaponTag[keyof typeof WeaponTag]

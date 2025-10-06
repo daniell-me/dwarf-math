@@ -6,68 +6,68 @@ import { findWeaponByName } from '@/utils/weaponFunctions'
 export const classMods: ClassMod[] = [
   // Gunner Class Mods
   {
-    name: 'Gunner Mod 1',
+    name: 'Weapons Specialist',
     class: Dwarves.gunner,
     startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
   },
   {
-    name: 'Gunner Mod 2',
+    name: 'Juggernaut',
     class: Dwarves.gunner,
     startingWeapon: findWeaponByName(weapons, 'Jury-Rigged Boomstick')
   },
   {
-    name: 'Gunner Mod 3',
+    name: 'Heavy Gunner',
     class: Dwarves.gunner,
     startingWeapon: findWeaponByName(weapons, 'Zhukov NUK17')
   },
 
   // Scout Class Mods
   {
-    name: 'Scout Mod 1',
+    name: 'Classic',
     class: Dwarves.scout,
     startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
   },
   {
-    name: 'Scout Mod 2',
+    name: 'Recon',
     class: Dwarves.scout,
     startingWeapon: findWeaponByName(weapons, 'Jury-Rigged Boomstick')
   },
   {
-    name: 'Scout Mod 3',
+    name: 'Sharp Shooter',
     class: Dwarves.scout,
     startingWeapon: findWeaponByName(weapons, 'Zhukov NUK17')
   },
 
   // Driller Class Mods
   {
-    name: 'Driller Mod 1',
+    name: 'Foreman',
     class: Dwarves.driller,
     startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
   },
   {
-    name: 'Driller Mod 2',
+    name: 'Interrogator',
     class: Dwarves.driller,
     startingWeapon: findWeaponByName(weapons, 'Jury-Rigged Boomstick')
   },
   {
-    name: 'Driller Mod 3',
+    name: 'Strong Armed',
     class: Dwarves.driller,
     startingWeapon: findWeaponByName(weapons, 'M1000 Classic')
   },
 
   // Engineer Class Mods
   {
-    name: 'Engineer Mod 1',
+    name: 'Maintenance Worker',
     class: Dwarves.engineer,
     startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
   },
   {
-    name: 'Engineer Mod 2',
+    name: 'Tinkerer',
     class: Dwarves.engineer,
     startingWeapon: findWeaponByName(weapons, 'Zhukov NUK17')
   },
   {
-    name: 'Engineer Mod 3',
+    name: 'Demolitionist',
     class: Dwarves.engineer,
     startingWeapon: findWeaponByName(weapons, 'M1000 Classic')
   }
