@@ -12,14 +12,14 @@ import { ref, watch } from 'vue'
 
 const characterStats = ref<CharacterStats>({ ...defaultCharacterStats })
 const selectedClassMod = ref<ClassMod | null>(null)
-const equippedWeapons = ref<Weapon[]>([])
+const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
 
-// When class mod changes, initialize with starting weapon
+// When class mod changes, initialize with starting weapon in first slot
 watch(selectedClassMod, (newClassMod) => {
   if (newClassMod && newClassMod.startingWeapon) {
-    equippedWeapons.value = [newClassMod.startingWeapon]
+    equippedWeapons.value = [newClassMod.startingWeapon, null, null, null]
   } else {
-    equippedWeapons.value = []
+    equippedWeapons.value = [null, null, null, null]
   }
 })
 
@@ -39,24 +39,16 @@ function getValidUpgrades(weapon: Weapon): Upgrade[] {
   return getValidUpgradesForWeapon(weapon, upgrades)
 }
 
-function addWeapon(weapon: Weapon) {
-  if (equippedWeapons.value.length < 4 && !equippedWeapons.value.includes(weapon)) {
-    equippedWeapons.value.push(weapon)
-  }
+function setWeapon(index: number, weapon: Weapon | null) {
+  equippedWeapons.value[index] = weapon
 }
 
-function removeWeapon(weapon: Weapon) {
-  const index = equippedWeapons.value.indexOf(weapon)
-  if (index > -1) {
-    equippedWeapons.value.splice(index, 1)
-  }
+function getAvailableWeapons(currentIndex: number): Weapon[] {
+  return weapons.filter(weapon => {
+    // Check if weapon is not already equipped in other slots
+    return !equippedWeapons.value.some((w, i) => i !== currentIndex && w?.name === weapon.name)
+  })
 }
-
-// Get weapons available to add (not already equipped)
-const availableWeapons = ref<Weapon[]>([])
-watch([equippedWeapons, selectedClassMod], () => {
-  availableWeapons.value = weapons.filter(weapon => !equippedWeapons.value.includes(weapon))
-}, { immediate: true })
 </script>
 
 <template>
@@ -73,39 +65,39 @@ watch([equippedWeapons, selectedClassMod], () => {
 
     <div v-if="selectedClassMod" class="equipped-weapons-section">
       <div class="section-header">
-        <h2>Equipped Weapons ({{ equippedWeapons.length }}/4)</h2>
+        <h2>Equipped Weapons</h2>
       </div>
 
       <div class="weapon-list">
-        <WeaponRow
-          v-for="weapon in equippedWeapons"
-          :key="weapon.name"
-          :weapon="weapon"
-          :character-stats="characterStats"
-          :upgrades="getValidUpgrades(weapon)"
-          :get-weapon-d-p-s="getWeaponDPS"
-          :get-upgraded-d-p-s="getUpgradedDPS"
-          :removable="equippedWeapons.length > 1"
-          @remove="removeWeapon(weapon)"
-        />
-      </div>
+        <div v-for="(weapon, index) in equippedWeapons" :key="index" class="weapon-slot">
+          <WeaponRow
+            v-if="weapon"
+            :weapon="weapon"
+            :character-stats="characterStats"
+            :upgrades="getValidUpgrades(weapon)"
+            :get-weapon-d-p-s="getWeaponDPS"
+            :get-upgraded-d-p-s="getUpgradedDPS"
+            :removable="true"
+            @remove="setWeapon(index, null)"
+          />
 
-      <div v-if="equippedWeapons.length < 4" class="add-weapon-section">
-        <h3>Add Weapon</h3>
-        <select @change="(e) => {
-          const target = e.target as HTMLSelectElement
-          const weaponName = target.value
-          if (weaponName) {
-            const weapon = weapons.find(w => w.name === weaponName)
-            if (weapon) addWeapon(weapon)
-            target.value = ''
-          }
-        }">
-          <option value="">Select a weapon to add...</option>
-          <option v-for="weapon in availableWeapons" :key="weapon.name" :value="weapon.name">
-            {{ weapon.name }}
-          </option>
-        </select>
+          <div v-else class="empty-weapon-slot">
+            <h3>Weapon Slot {{ index + 1 }}</h3>
+            <select @change="(e) => {
+              const target = e.target as HTMLSelectElement
+              const weaponName = target.value
+              if (weaponName) {
+                const weapon = weapons.find(w => w.name === weaponName)
+                if (weapon) setWeapon(index, weapon)
+              }
+            }">
+              <option value="">Select a weapon...</option>
+              <option v-for="weapon in getAvailableWeapons(index)" :key="weapon.name" :value="weapon.name">
+                {{ weapon.name }}
+              </option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -143,20 +135,24 @@ h1 {
   margin-bottom: 2rem;
 }
 
-.add-weapon-section {
+.weapon-slot {
+  min-height: 100px;
+}
+
+.empty-weapon-slot {
   padding: 1.5rem;
   border: 2px dashed var(--color-border);
   border-radius: 8px;
   background: var(--color-background-mute);
 }
 
-.add-weapon-section h3 {
+.empty-weapon-slot h3 {
   margin-top: 0;
   margin-bottom: 1rem;
   font-size: 1.2rem;
 }
 
-.add-weapon-section select {
+.empty-weapon-slot select {
   width: 100%;
   padding: 0.75rem;
   font-size: 1rem;
@@ -167,7 +163,7 @@ h1 {
   cursor: pointer;
 }
 
-.add-weapon-section select:hover {
+.empty-weapon-slot select:hover {
   border-color: var(--color-border-hover);
 }
 

@@ -61,18 +61,18 @@ export interface Upgrade {
   values: Partial<Record<Rarity, number>>
 }
 
-export const Dwarves = {
-  gunner: 'gunner',
-  scout: 'scout',
-  driller: 'driller',
-  engineer: 'engineer'
+export const Class = {
+  scout: 'Scout',
+  gunner: 'Gunner',
+  engineer: 'Engineer',
+  driller: 'Driller',
 } as const
 
-export type Dwarves = typeof Dwarves[keyof typeof Dwarves]
+export type Class = typeof Class[keyof typeof Class]
 
 export interface ClassMod {
   name: string
-  class: Dwarves
+  class: Class
   startingWeapon: Weapon
   statModifications?: Partial<CharacterStats>
 }
