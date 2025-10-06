@@ -1,74 +1,85 @@
 import type { ClassMod } from './types'
-import { Class } from './types'
-import { weapons } from './weapons'
-import { findWeaponByName } from '@/utils/weaponFunctions'
+import { Class, WeaponTag } from './types'
+import { WeaponIds } from './weapons'
 
 export const classMods: ClassMod[] = [
   // Scout Class Mods
   {
     name: 'Classic',
     class: Class.scout,
-    startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
+    startingWeaponId: WeaponIds.gk2,
+    availableWeaponTags: []
   },
   {
     name: 'Recon',
     class: Class.scout,
-    startingWeapon: findWeaponByName(weapons, 'Jury-Rigged Boomstick')
+    startingWeaponId: WeaponIds.boomstick,
+    availableWeaponTags: [WeaponTag.light]
   },
   {
     name: 'Sharp Shooter',
     class: Class.scout,
-    startingWeapon: findWeaponByName(weapons, 'Zhukov NUK17')
+    startingWeaponId: WeaponIds.zhukov,
+    availableWeaponTags: []
   },
 
   // Gunner Class Mods
   {
     name: 'Weapons Specialist',
     class: Class.gunner,
-    startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
+    startingWeaponId: WeaponIds.gk2,
+    availableWeaponTags: [WeaponTag.projectile]
   },
   {
     name: 'Juggernaut',
     class: Class.gunner,
-    startingWeapon: findWeaponByName(weapons, 'Jury-Rigged Boomstick')
+    startingWeaponId: WeaponIds.boomstick,
+    availableWeaponTags: []
   },
   {
     name: 'Heavy Gunner',
     class: Class.gunner,
-    startingWeapon: findWeaponByName(weapons, 'Zhukov NUK17')
+    startingWeaponId: WeaponIds.zhukov,
+    availableWeaponTags: [WeaponTag.heavy]
   },
 
   // Engineer Class Mods
   {
     name: 'Maintenance Worker',
     class: Class.engineer,
-    startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
+    startingWeaponId: WeaponIds.gk2,
+    availableWeaponTags: [WeaponTag.construct]
   },
   {
     name: 'Tinkerer',
     class: Class.engineer,
-    startingWeapon: findWeaponByName(weapons, 'Zhukov NUK17')
+    startingWeaponId: WeaponIds.zhukov,
+    availableWeaponTags: []
   },
   {
     name: 'Demolitionist',
     class: Class.engineer,
-    startingWeapon: findWeaponByName(weapons, 'M1000 Classic')
+    startingWeaponId: WeaponIds.m1000,
+    availableWeaponTags: [WeaponTag.explosive]
   },
 
   // Driller Class Mods
   {
     name: 'Foreman',
     class: Class.driller,
-    startingWeapon: findWeaponByName(weapons, 'Deepcore GK2')
+    startingWeaponId: WeaponIds.gk2,
+    availableWeaponTags: []
   },
   {
     name: 'Interrogator',
     class: Class.driller,
-    startingWeapon: findWeaponByName(weapons, 'Jury-Rigged Boomstick')
+    startingWeaponId: WeaponIds.boomstick,
+    availableWeaponTags: [WeaponTag.fire, WeaponTag.acid]
   },
   {
     name: 'Strong Armed',
     class: Class.driller,
-    startingWeapon: findWeaponByName(weapons, 'M1000 Classic')
+    startingWeaponId: WeaponIds.m1000,
+    availableWeaponTags: [WeaponTag.throwable]
   }
 ]

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { weapons, defaultCharacterStats } from '@/data/weapons'
+import { weapons, defaultCharacterStats, weaponsMap } from '@/data/weapons'
 import { upgrades } from '@/data/upgrades'
 import { classMods } from '@/data/classMods'
 import type { Weapon, CharacterStats, Upgrade, ClassMod } from '@/data/types'
@@ -16,8 +16,9 @@ const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
 
 // When class mod changes, initialize with starting weapon in first slot
 watch(selectedClassMod, (newClassMod) => {
-  if (newClassMod && newClassMod.startingWeapon) {
-    equippedWeapons.value = [newClassMod.startingWeapon, null, null, null]
+  if (newClassMod && newClassMod.startingWeaponId) {
+    const startingWeapon = weaponsMap[newClassMod.startingWeaponId]
+    equippedWeapons.value = [startingWeapon, null, null, null]
   } else {
     equippedWeapons.value = [null, null, null, null]
   }

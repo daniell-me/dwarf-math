@@ -25,7 +25,10 @@ export const WeaponTag = {
   plasma: 'plasma',
   explosive: 'explosive',
   throwable: 'throwable',
-  turret: 'turret'
+  turret: 'turret',
+  light: 'light',
+  heavy: 'heavy',
+  construct: 'construct'
 } as const
 
 export type WeaponTag = typeof WeaponTag[keyof typeof WeaponTag]
@@ -41,12 +44,14 @@ export const Rarity = {
 export type Rarity = typeof Rarity[keyof typeof Rarity]
 
 export interface Weapon {
+  id: string
   name: string
   baseDmg: number
   fireRate: number
   clipSize: number
   reloadTime: number
   tags: WeaponTag[]
+  class: Class
 }
 
 export interface CharacterStats {
@@ -73,6 +78,7 @@ export type Class = typeof Class[keyof typeof Class]
 export interface ClassMod {
   name: string
   class: Class
-  startingWeapon: Weapon
+  startingWeaponId: string
+  availableWeaponTags: WeaponTag[]
   statModifications?: Partial<CharacterStats>
 }
