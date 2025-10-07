@@ -62,6 +62,12 @@ export interface CharacterStats {
   critDamage: number
   xpGain?: number
   miningSpeed?: number
+  moveSpeed?: number
+  weaponRange?: number
+  reloadSpeed?: number
+  damage?: number
+  explosionRadius?: number
+  statusDamage?: number
 }
 
 export interface Upgrade {
@@ -85,5 +91,16 @@ export interface ClassMod {
   class: Class
   startingWeaponId: string
   availableWeaponTags: WeaponTag[]
-  statModifications?: Partial<CharacterStats>
+  statMultipliers?: Partial<CharacterStats>
+  conditionalEffects?: string[]
+}
+
+export interface MetaUpgrade {
+  id: string
+  name: string
+  stat: string  // Can be CharacterStats key or non-combat stat
+  maxLevel: number
+  bonusPerLevel: number
+  bonusType: 'percentage' | 'flat'
+  description?: string
 }
