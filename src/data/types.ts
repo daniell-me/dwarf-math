@@ -55,8 +55,13 @@ export interface Weapon {
 }
 
 export interface CharacterStats {
+  health: number
+  armor?: number
+  dodgeChance?: number
   critChance: number
   critDamage: number
+  xpGain?: number
+  miningSpeed?: number
 }
 
 export interface Upgrade {

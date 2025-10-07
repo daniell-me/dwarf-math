@@ -2,17 +2,17 @@
 import type { Weapon, CharacterStats, Upgrade } from '@/data/types'
 import WeaponCard from '@/components/WeaponCard.vue'
 import UpgradeTable from '@/components/UpgradeTable.vue'
+import DPSDisplay from '@/components/DPSDisplay.vue'
 
 interface Props {
   weapon: Weapon
   characterStats: CharacterStats
   upgrades: Upgrade[]
-  getWeaponDPS: (weapon: Weapon) => number
   getUpgradedDPS: (weapon: Weapon, upgrade: Upgrade, rarity: keyof Upgrade['values']) => number | null
   removable?: boolean
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 interface Emits {
   (e: 'remove'): void
@@ -29,10 +29,7 @@ const emit = defineEmits<Emits>()
     </div>
 
     <!-- Current DPS -->
-    <div class="current-dps">
-      <div class="dps-label">Current DPS</div>
-      <div class="dps-value">{{ getWeaponDPS(weapon) }}</div>
-    </div>
+    <DPSDisplay :weapon="weapon" :character-stats="characterStats" />
 
     <!-- Upgrade Table -->
     <UpgradeTable
@@ -68,23 +65,6 @@ const emit = defineEmits<Emits>()
   max-width: 300px;
   display: flex;
   flex-direction: column;
-}
-
-.current-dps {
-  width: 120px;
-  text-align: center;
-}
-
-.dps-label {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.5rem;
-}
-
-.dps-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  font-family: monospace;
 }
 
 .remove-button {

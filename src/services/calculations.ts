@@ -1,65 +1,64 @@
-import type { Weapon, CharacterStats } from '@/data/types'
-import { Stat } from '@/data/types'
+import type { Upgrade, Rarity } from '@/data/types'
 
-function mapStatToProperty(stat: Stat): keyof (Weapon & CharacterStats) {
-  switch (stat) {
-    case Stat.dmg:
-      return 'baseDmg'
-    case Stat.reloadSpeed:
-      return 'reloadTime'
-    case Stat.fireRate:
-      return 'fireRate'
-    default:
-      throw new Error(`Unknown stat: ${stat}`)
+export function calculateDPS(
+  dmg: number,
+  fireRate: number,
+  reloadTime: number,
+  clipSize: number,
+  critChance: number,
+  critDmg: number
+): number {
+  if (reloadTime === 0) {
+    throw new Error('calculateDPS: reloadTime cannot be 0')
   }
-}
 
-export function calculateDPS(weapon: Weapon, characterStats: CharacterStats): number {
-  const { baseDmg, fireRate, clipSize, reloadTime } = weapon
-  const { critChance, critDamage } = characterStats
-
-  const avgDamagePerShot = baseDmg * (1 + critChance * (critDamage - 1))
-  const timeToEmptyClip = clipSize / fireRate
-  const totalCycleTime = timeToEmptyClip + reloadTime
-  const dps = (avgDamagePerShot * clipSize) / totalCycleTime
-
-  return Math.round(dps * 100) / 100
+  const dmgPerShot = dmg * (1 + critChance * (critDmg - 1))
+  // shots fire immediately on reload
+  const cycleTime = reloadTime + (clipSize - 1) / fireRate
+  const dps = (dmgPerShot * clipSize) / cycleTime
+  // round to 1dp
+  return Math.round(dps * 10) / 10
 }
 
 export function calculateDPSWithUpgrade(
-  weapon: Weapon,
-  characterStats: CharacterStats,
-  upgradeStat: keyof (Weapon & CharacterStats),
-  upgradeValue: number
+  dmg: number,
+  fireRate: number,
+  reloadTime: number,
+  clipSize: number,
+  critChance: number,
+  critDmg: number,
+  upgrade: Upgrade,
+  rarity: Rarity
 ): number {
-  const modifiedWeapon = { ...weapon }
-  const modifiedCharacterStats = { ...characterStats }
-
-  if (upgradeStat === 'critChance') {
-    modifiedCharacterStats[upgradeStat] = characterStats[upgradeStat] + (upgradeValue / 100)
-  } else if (upgradeStat === 'critDamage') {
-    modifiedCharacterStats[upgradeStat] = characterStats[upgradeStat] * (1 + upgradeValue / 100)
-  } else {
-    // Handle weapon-specific stats
-    if (upgradeStat === 'baseDmg' || upgradeStat === 'fireRate' || upgradeStat === 'reloadTime' || upgradeStat === 'clipSize') {
-      (modifiedWeapon as any)[upgradeStat] = (weapon as any)[upgradeStat] * (1 + upgradeValue / 100)
-    }
+  const upgradeValue = upgrade.values[rarity]
+  if (upgradeValue === undefined) {
+    throw new Error(`calculateDPSWithUpgrade: upgrade '${upgrade.name}' does not have a value for rarity '${rarity}'`)
   }
 
-  return calculateDPS(modifiedWeapon, modifiedCharacterStats)
-}
+  // Apply upgrade to the appropriate stat
+  let modifiedDmg = dmg
+  let modifiedFireRate = fireRate
+  let modifiedReloadTime = reloadTime
 
-export function calculateDPSWithStatUpgrade(
-  weapon: Weapon,
-  characterStats: CharacterStats,
-  upgradeStat: Stat,
-  upgradeValue: number
-): number {
-  try {
-    const propertyName = mapStatToProperty(upgradeStat)
-    return calculateDPSWithUpgrade(weapon, characterStats, propertyName, upgradeValue)
-  } catch {
-    // If stat doesn't map to a weapon property, return base DPS
-    return calculateDPS(weapon, characterStats)
+  switch (upgrade.stat) {
+    case 'dmg':
+      modifiedDmg = dmg * (1 + upgradeValue)
+      break
+    case 'fireRate':
+      modifiedFireRate = fireRate * (1 + upgradeValue)
+      break
+    case 'reloadSpeed':
+      modifiedReloadTime = reloadTime * (1 - upgradeValue)
+      break
+    // Add other cases as needed
   }
+
+  return calculateDPS(
+    modifiedDmg,
+    modifiedFireRate,
+    modifiedReloadTime,
+    clipSize,
+    critChance,
+    critDmg
+  )
 }

@@ -1,39 +1,52 @@
 <script setup lang="ts">
-import { weapons, defaultCharacterStats, weaponsMap } from '@/data/weapons'
+import { weapons, weaponsMap } from '@/data/weapons'
 import { upgrades } from '@/data/upgrades'
 import { classMods } from '@/data/classMods'
+import { classBaseStats } from '@/data/classes'
 import type { Weapon, CharacterStats, Upgrade, ClassMod } from '@/data/types'
-import { calculateDPS, calculateDPSWithStatUpgrade } from '@/services/calculations'
+import { calculateDPS, calculateDPSWithUpgrade } from '@/services/calculations'
 import { getValidUpgradesForWeapon } from '@/utils/weaponFunctions'
 import WeaponRow from '@/components/WeaponRow.vue'
 import RarityHeader from '@/components/RarityHeader.vue'
 import ClassModSelector from '@/components/ClassModSelector.vue'
 import { ref, watch } from 'vue'
 
-const characterStats = ref<CharacterStats>({ ...defaultCharacterStats })
 const selectedClassMod = ref<ClassMod | null>(null)
+const characterStats = ref<CharacterStats | null>(null)
 const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
 
-// When class mod changes, initialize with starting weapon in first slot
+// When class mod changes, update character stats and starting weapon
 watch(selectedClassMod, (newClassMod) => {
-  if (newClassMod && newClassMod.startingWeaponId) {
+  if (newClassMod) {
+    // Set character stats based on class
+    characterStats.value = { ...classBaseStats[newClassMod.class] }
+
+    // Initialize with starting weapon in first slot
     const startingWeapon = weaponsMap[newClassMod.startingWeaponId]
     equippedWeapons.value = [startingWeapon, null, null, null]
   } else {
+    characterStats.value = null
     equippedWeapons.value = [null, null, null, null]
   }
 })
 
-function getWeaponDPS(weapon: Weapon): number {
-  return calculateDPS(weapon, characterStats.value)
-}
-
 function getUpgradedDPS(weapon: Weapon, upgrade: Upgrade, rarity: keyof Upgrade['values']): number | null {
+  if (!characterStats.value) return null
+
   const upgradeValue = upgrade.values[rarity]
   if (upgradeValue === undefined) {
     return null
   }
-  return calculateDPSWithStatUpgrade(weapon, characterStats.value, upgrade.stat, upgradeValue)
+  return calculateDPSWithUpgrade(
+    weapon.baseDmg,
+    weapon.fireRate,
+    weapon.reloadTime,
+    weapon.clipSize,
+    characterStats.value.critChance,
+    characterStats.value.critDamage,
+    upgrade,
+    rarity
+  )
 }
 
 function getValidUpgrades(weapon: Weapon): Upgrade[] {
@@ -72,11 +85,10 @@ function getAvailableWeapons(currentIndex: number): Weapon[] {
       <div class="weapon-list">
         <div v-for="(weapon, index) in equippedWeapons" :key="index" class="weapon-slot">
           <WeaponRow
-            v-if="weapon"
+            v-if="weapon && characterStats"
             :weapon="weapon"
             :character-stats="characterStats"
             :upgrades="getValidUpgrades(weapon)"
-            :get-weapon-d-p-s="getWeaponDPS"
             :get-upgraded-d-p-s="getUpgradedDPS"
             :removable="true"
             @remove="setWeapon(index, null)"

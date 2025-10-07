@@ -7,8 +7,8 @@ export const upgrades: Upgrade[] = [
     stat: Stat.piercing,
     tags: [WeaponTag.projectile],
     values: {
-      [Rarity.rare]: 25,
-      [Rarity.epic]: 50,
+      [Rarity.rare]: 0.25,
+      [Rarity.epic]: 0.50,
     }
   },
   {
@@ -16,11 +16,11 @@ export const upgrades: Upgrade[] = [
     stat: Stat.dmg,
     tags: [WeaponTag.all],
     values: {
-      [Rarity.common]: 10,
-      [Rarity.uncommon]: 15,
-      [Rarity.rare]: 25,
-      [Rarity.epic]: 35,
-      [Rarity.legendary]: 50
+      [Rarity.common]: 0.10,
+      [Rarity.uncommon]: 0.15,
+      [Rarity.rare]: 0.25,
+      [Rarity.epic]: 0.35,
+      [Rarity.legendary]: 0.50
     }
   },
   {
@@ -28,11 +28,11 @@ export const upgrades: Upgrade[] = [
     stat: Stat.reloadSpeed,
     tags: [WeaponTag.all],
     values: {
-      [Rarity.common]: 10,
-      [Rarity.uncommon]: 15,
-      [Rarity.rare]: 25,
-      [Rarity.epic]: 35,
-      [Rarity.legendary]: 50
+      [Rarity.common]: 0.10,
+      [Rarity.uncommon]: 0.15,
+      [Rarity.rare]: 0.25,
+      [Rarity.epic]: 0.35,
+      [Rarity.legendary]: 0.50
     }
   },
   {
@@ -48,9 +48,9 @@ export const upgrades: Upgrade[] = [
     stat: Stat.range,
     tags: [WeaponTag.beam],
     values: {
-      [Rarity.rare]: 10,
-      [Rarity.epic]: 15,
-      [Rarity.legendary]: 25
+      [Rarity.rare]: 0.10,
+      [Rarity.epic]: 0.15,
+      [Rarity.legendary]: 0.25
     }
   },
   {
@@ -75,11 +75,11 @@ export const upgrades: Upgrade[] = [
     stat: Stat.fireRate,
     tags: [WeaponTag.projectile],
     values: {
-      [Rarity.common]: 10,
-      [Rarity.uncommon]: 15,
-      [Rarity.rare]: 25,
-      [Rarity.epic]: 35,
-      [Rarity.legendary]: 50
+      [Rarity.common]: 0.10,
+      [Rarity.uncommon]: 0.15,
+      [Rarity.rare]: 0.25,
+      [Rarity.epic]: 0.35,
+      [Rarity.legendary]: 0.50
     }
   },
   {
@@ -87,9 +87,9 @@ export const upgrades: Upgrade[] = [
     stat: Stat.statusPotency,
     tags: [WeaponTag.acid, WeaponTag.electrical, WeaponTag.fire],
     values: {
-      [Rarity.uncommon]: 15,
-      [Rarity.rare]: 25,
-      [Rarity.epic]: 35,
+      [Rarity.uncommon]: 0.15,
+      [Rarity.rare]: 0.25,
+      [Rarity.epic]: 0.35,
     }
   }
 ]
