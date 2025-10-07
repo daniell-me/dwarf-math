@@ -93,12 +93,11 @@ function selectModByName(event: Event) {
 .class-mod-selector {
   display: flex;
   flex-direction: row;
-  gap: 2rem;
-  padding: 1rem 1.5rem;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
   background: var(--color-background-soft);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  margin-bottom: 1rem;
   align-items: center;
 }
 
@@ -111,22 +110,22 @@ function selectModByName(event: Event) {
 
 .selector-label {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-text);
   white-space: nowrap;
 }
 
 .selector-dropdown {
-  padding: 0.4rem 0.75rem;
+  padding: 0.3rem 0.6rem;
   border: 1px solid var(--color-border-hover);
   border-radius: 4px;
   background: var(--color-background);
   color: var(--color-text);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   text-transform: capitalize;
-  min-width: 150px;
+  min-width: 120px;
 }
 
 .selector-dropdown:hover {

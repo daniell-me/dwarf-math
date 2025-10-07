@@ -1,10 +1,35 @@
 <script setup lang="ts">
+import ClassModSelector from '@/components/ClassModSelector.vue'
+import type { ClassMod } from '@/data/types'
+
+interface Props {
+  classMods: ClassMod[]
+  selectedClassMod: ClassMod | null
+}
+
+defineProps<Props>()
+
+interface Emits {
+  (e: 'update:selectedClassMod', value: ClassMod): void
+}
+
+const emit = defineEmits<Emits>()
+
 const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const
 </script>
 
 <template>
-  <div class="rarity-header-row">
-    <!-- Table structure matching UpgradeTable -->
+  <div class="header-row">
+    <!-- Class Selector spanning weapon-card and DPS display width -->
+    <div class="class-selector-container">
+      <ClassModSelector
+        :class-mods="classMods"
+        :selected-class-mod="selectedClassMod"
+        @update:selected-class-mod="emit('update:selectedClassMod', $event)"
+      />
+    </div>
+
+    <!-- Rarity headers matching UpgradeTable -->
     <div class="upgrade-table-header">
       <table>
         <thead>
@@ -26,24 +51,23 @@ const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const
 </template>
 
 <style scoped>
-.rarity-header-row {
+.header-row {
   display: flex;
   flex-direction: row;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 0;
+  gap: 2rem;
+  align-items: center;
+  padding: 1.5rem;
   margin-bottom: 0;
 }
 
-.weapon-spacer {
-  width: 200px;
-  min-width: 200px;
-  max-width: 200px;
+.class-selector-container {
+  /* Span weapon card (300px) + gap (2rem) + DPS (120px) */
+  width: calc(300px + 2rem + 120px);
+  min-width: calc(300px + 2rem + 120px);
+  max-width: calc(300px + 2rem + 120px);
 }
 
-.dps-spacer {
-  width: 80px;
-}
+/* No spacer needed since class selector spans both areas */
 
 .upgrade-table-header {
   flex: 1;
