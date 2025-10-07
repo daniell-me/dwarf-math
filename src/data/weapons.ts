@@ -1,9 +1,4 @@
-import { type Weapon, type CharacterStats, WeaponTag, Class } from './types'
-
-export const defaultCharacterStats: CharacterStats = {
-  critChance: 0.05,
-  critDamage: 2.0
-}
+import { type Weapon, WeaponTag, Class } from './types'
 
 const weaponsList: Weapon[] = [
   // Scout Weapons

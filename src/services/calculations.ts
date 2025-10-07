@@ -1,65 +1,144 @@
-import type { Weapon, CharacterStats } from '@/data/types'
-import { Stat } from '@/data/types'
+import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade } from '@/data/types'
 
-function mapStatToProperty(stat: Stat): keyof (Weapon & CharacterStats) {
-  switch (stat) {
-    case Stat.dmg:
-      return 'baseDmg'
-    case Stat.reloadSpeed:
-      return 'reloadTime'
-    case Stat.fireRate:
-      return 'fireRate'
-    default:
-      throw new Error(`Unknown stat: ${stat}`)
+export function calculateDPS(
+  dmg: number,
+  fireRate: number,
+  reloadTime: number,
+  clipSize: number,
+  critChance: number,
+  critDmg: number
+): number {
+  if (reloadTime === 0) {
+    throw new Error('calculateDPS: reloadTime cannot be 0')
   }
-}
 
-export function calculateDPS(weapon: Weapon, characterStats: CharacterStats): number {
-  const { baseDmg, fireRate, clipSize, reloadTime } = weapon
-  const { critChance, critDamage } = characterStats
-
-  const avgDamagePerShot = baseDmg * (1 + critChance * (critDamage - 1))
-  const timeToEmptyClip = clipSize / fireRate
-  const totalCycleTime = timeToEmptyClip + reloadTime
-  const dps = (avgDamagePerShot * clipSize) / totalCycleTime
-
-  return Math.round(dps * 100) / 100
+  const dmgPerShot = dmg * (1 + critChance * (critDmg - 1))
+  // shots fire immediately on reload
+  const cycleTime = reloadTime + (clipSize - 1) / fireRate
+  const dps = (dmgPerShot * clipSize) / cycleTime
+  // round to 1dp
+  return Math.round(dps * 10) / 10
 }
 
 export function calculateDPSWithUpgrade(
-  weapon: Weapon,
-  characterStats: CharacterStats,
-  upgradeStat: keyof (Weapon & CharacterStats),
-  upgradeValue: number
+  dmg: number,
+  fireRate: number,
+  reloadTime: number,
+  clipSize: number,
+  critChance: number,
+  critDmg: number,
+  upgrade: Upgrade,
+  rarity: Rarity
 ): number {
-  const modifiedWeapon = { ...weapon }
-  const modifiedCharacterStats = { ...characterStats }
+  const upgradeValue = upgrade.values[rarity]
+  if (upgradeValue === undefined) {
+    throw new Error(`calculateDPSWithUpgrade: upgrade '${upgrade.name}' does not have a value for rarity '${rarity}'`)
+  }
 
-  if (upgradeStat === 'critChance') {
-    modifiedCharacterStats[upgradeStat] = characterStats[upgradeStat] + (upgradeValue / 100)
-  } else if (upgradeStat === 'critDamage') {
-    modifiedCharacterStats[upgradeStat] = characterStats[upgradeStat] * (1 + upgradeValue / 100)
-  } else {
-    // Handle weapon-specific stats
-    if (upgradeStat === 'baseDmg' || upgradeStat === 'fireRate' || upgradeStat === 'reloadTime' || upgradeStat === 'clipSize') {
-      (modifiedWeapon as any)[upgradeStat] = (weapon as any)[upgradeStat] * (1 + upgradeValue / 100)
+  // Apply upgrade to the appropriate stat
+  let modifiedDmg = dmg
+  let modifiedFireRate = fireRate
+  let modifiedReloadTime = reloadTime
+
+  switch (upgrade.stat) {
+    case 'dmg':
+      modifiedDmg = dmg * (1 + upgradeValue)
+      break
+    case 'fireRate':
+      modifiedFireRate = fireRate * (1 + upgradeValue)
+      break
+    case 'reloadSpeed':
+      modifiedReloadTime = reloadTime * (1 - upgradeValue)
+      break
+    // Add other cases as needed
+  }
+
+  return calculateDPS(
+    modifiedDmg,
+    modifiedFireRate,
+    modifiedReloadTime,
+    clipSize,
+    critChance,
+    critDmg
+  )
+}
+
+/**
+ * Calculate current character stats using the bucket formula:
+ * FinalStat = ((Base * Skill) + Flat) * Meta
+ *
+ * Where:
+ * - Base: Class base stats
+ * - Skill: Sum of all skill upgrades (currently 1.0)
+ * - Flat: Flat bonuses from gear
+ * - Meta: Meta Upgrades * Class Mod multipliers
+ *
+ * TODO: Add support for Overclocks and Artifacts
+ */
+export function calculateCurrentStats(
+  baseStats: CharacterStats,
+  classMod: ClassMod | null,
+  metaUpgrades: MetaUpgrade[],
+  metaUpgradeLevels: Record<string, number>,
+  flatGearBonuses: Partial<CharacterStats> = {},
+  percentGearBonuses: Partial<CharacterStats> = {}
+): CharacterStats {
+  const currentStats: CharacterStats = { ...baseStats }
+
+  // For each stat in CharacterStats
+  const statKeys = Object.keys(baseStats) as Array<keyof CharacterStats>
+
+  for (const statKey of statKeys) {
+    const baseValue = baseStats[statKey]
+    if (baseValue === undefined) continue
+
+    // Skill bucket (currently 1.0, no skill upgrades yet)
+    const skillMultiplier = 1.0
+
+    // Flat bucket (from gear)
+    const flatBonus = flatGearBonuses[statKey] ?? 0
+
+    // Meta bucket = Meta Upgrades * Class Mod multipliers
+    let metaMultiplier = 1.0
+
+    // Apply meta upgrades (percentage only)
+    for (const metaUpgrade of metaUpgrades) {
+      if (metaUpgrade.stat === statKey && metaUpgrade.bonusType === 'percentage') {
+        const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
+        if (level > 0) {
+          metaMultiplier *= (1 + metaUpgrade.bonusPerLevel * level)
+        }
+      }
+    }
+
+    // Apply class mod multipliers to meta bucket
+    if (classMod?.statMultipliers?.[statKey] !== undefined) {
+      const classModValue = classMod.statMultipliers[statKey]!
+      metaMultiplier *= (1 + classModValue)
+    }
+
+    // Percent gear bonuses also multiply
+    const gearMultiplier = 1 + (percentGearBonuses[statKey] ?? 0)
+
+    // Final calculation: ((Base * Skill) + Flat) * Meta * Gear
+    const calculatedValue = ((baseValue * skillMultiplier) + flatBonus) * metaMultiplier * gearMultiplier
+
+    currentStats[statKey] = calculatedValue as any
+  }
+
+  // Handle flat bonuses from meta upgrades (like Getting Fit: +10 HP per level)
+  for (const metaUpgrade of metaUpgrades) {
+    if (metaUpgrade.bonusType === 'flat') {
+      const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
+      if (level > 0 && metaUpgrade.stat in currentStats) {
+        const statKey = metaUpgrade.stat as keyof CharacterStats
+        const currentValue = currentStats[statKey]
+        if (typeof currentValue === 'number') {
+          currentStats[statKey] = (currentValue + metaUpgrade.bonusPerLevel * level) as any
+        }
+      }
     }
   }
 
-  return calculateDPS(modifiedWeapon, modifiedCharacterStats)
-}
-
-export function calculateDPSWithStatUpgrade(
-  weapon: Weapon,
-  characterStats: CharacterStats,
-  upgradeStat: Stat,
-  upgradeValue: number
-): number {
-  try {
-    const propertyName = mapStatToProperty(upgradeStat)
-    return calculateDPSWithUpgrade(weapon, characterStats, propertyName, upgradeValue)
-  } catch {
-    // If stat doesn't map to a weapon property, return base DPS
-    return calculateDPS(weapon, characterStats)
-  }
+  return currentStats
 }
