@@ -3,29 +3,47 @@ import { weapons, weaponsMap } from '@/data/weapons'
 import { upgrades } from '@/data/upgrades'
 import { classMods } from '@/data/classMods'
 import { classBaseStats } from '@/data/classes'
+import { metaUpgrades } from '@/data/metaUpgrades'
 import type { Weapon, CharacterStats, Upgrade, ClassMod } from '@/data/types'
-import { calculateDPS, calculateDPSWithUpgrade } from '@/services/calculations'
+import { calculateCurrentStats, calculateDPSWithUpgrade } from '@/services/calculations'
 import { getValidUpgradesForWeapon } from '@/utils/weaponFunctions'
 import WeaponRow from '@/components/WeaponRow.vue'
 import RarityHeader from '@/components/RarityHeader.vue'
 import ClassModSelector from '@/components/ClassModSelector.vue'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const selectedClassMod = ref<ClassMod | null>(null)
-const characterStats = ref<CharacterStats | null>(null)
 const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
 
-// When class mod changes, update character stats and starting weapon
+// TODO: Implement cross-session state tracking for meta upgrade levels
+const metaUpgradeLevels = ref<Record<string, number>>({})
+
+// TODO: Add UI for gear bonuses
+const flatGearBonuses = ref<Partial<CharacterStats>>({})
+const percentGearBonuses = ref<Partial<CharacterStats>>({})
+
+// Calculate current character stats based on class, class mod, meta upgrades, and gear
+const characterStats = computed<CharacterStats | null>(() => {
+  if (!selectedClassMod.value) return null
+
+  const baseStats = classBaseStats[selectedClassMod.value.class]
+
+  return calculateCurrentStats(
+    baseStats,
+    selectedClassMod.value,
+    metaUpgrades,
+    metaUpgradeLevels.value,
+    flatGearBonuses.value,
+    percentGearBonuses.value
+  )
+})
+
+// When class mod changes, initialize with starting weapon
 watch(selectedClassMod, (newClassMod) => {
   if (newClassMod) {
-    // Set character stats based on class
-    characterStats.value = { ...classBaseStats[newClassMod.class] }
-
-    // Initialize with starting weapon in first slot
     const startingWeapon = weaponsMap[newClassMod.startingWeaponId]
     equippedWeapons.value = [startingWeapon, null, null, null]
   } else {
-    characterStats.value = null
     equippedWeapons.value = [null, null, null, null]
   }
 })

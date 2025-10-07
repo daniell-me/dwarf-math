@@ -1,4 +1,4 @@
-import type { Upgrade, Rarity } from '@/data/types'
+import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade } from '@/data/types'
 
 export function calculateDPS(
   dmg: number,
@@ -61,4 +61,84 @@ export function calculateDPSWithUpgrade(
     critChance,
     critDmg
   )
+}
+
+/**
+ * Calculate current character stats using the bucket formula:
+ * FinalStat = ((Base * Skill) + Flat) * Meta
+ *
+ * Where:
+ * - Base: Class base stats
+ * - Skill: Sum of all skill upgrades (currently 1.0)
+ * - Flat: Flat bonuses from gear
+ * - Meta: Meta Upgrades * Class Mod multipliers
+ *
+ * TODO: Add support for Overclocks and Artifacts
+ */
+export function calculateCurrentStats(
+  baseStats: CharacterStats,
+  classMod: ClassMod | null,
+  metaUpgrades: MetaUpgrade[],
+  metaUpgradeLevels: Record<string, number>,
+  flatGearBonuses: Partial<CharacterStats> = {},
+  percentGearBonuses: Partial<CharacterStats> = {}
+): CharacterStats {
+  const currentStats: CharacterStats = { ...baseStats }
+
+  // For each stat in CharacterStats
+  const statKeys = Object.keys(baseStats) as Array<keyof CharacterStats>
+
+  for (const statKey of statKeys) {
+    const baseValue = baseStats[statKey]
+    if (baseValue === undefined) continue
+
+    // Skill bucket (currently 1.0, no skill upgrades yet)
+    const skillMultiplier = 1.0
+
+    // Flat bucket (from gear)
+    const flatBonus = flatGearBonuses[statKey] ?? 0
+
+    // Meta bucket = Meta Upgrades * Class Mod multipliers
+    let metaMultiplier = 1.0
+
+    // Apply meta upgrades (percentage only)
+    for (const metaUpgrade of metaUpgrades) {
+      if (metaUpgrade.stat === statKey && metaUpgrade.bonusType === 'percentage') {
+        const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
+        if (level > 0) {
+          metaMultiplier *= (1 + metaUpgrade.bonusPerLevel * level)
+        }
+      }
+    }
+
+    // Apply class mod multipliers to meta bucket
+    if (classMod?.statMultipliers?.[statKey] !== undefined) {
+      const classModValue = classMod.statMultipliers[statKey]!
+      metaMultiplier *= (1 + classModValue)
+    }
+
+    // Percent gear bonuses also multiply
+    const gearMultiplier = 1 + (percentGearBonuses[statKey] ?? 0)
+
+    // Final calculation: ((Base * Skill) + Flat) * Meta * Gear
+    const calculatedValue = ((baseValue * skillMultiplier) + flatBonus) * metaMultiplier * gearMultiplier
+
+    currentStats[statKey] = calculatedValue as any
+  }
+
+  // Handle flat bonuses from meta upgrades (like Getting Fit: +10 HP per level)
+  for (const metaUpgrade of metaUpgrades) {
+    if (metaUpgrade.bonusType === 'flat') {
+      const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
+      if (level > 0 && metaUpgrade.stat in currentStats) {
+        const statKey = metaUpgrade.stat as keyof CharacterStats
+        const currentValue = currentStats[statKey]
+        if (typeof currentValue === 'number') {
+          currentStats[statKey] = (currentValue + metaUpgrade.bonusPerLevel * level) as any
+        }
+      }
+    }
+  }
+
+  return currentStats
 }
