@@ -8,8 +8,7 @@ import type { Weapon, CharacterStats, Upgrade, ClassMod } from '@/data/types'
 import { calculateCurrentStats, calculateDPSWithUpgrade } from '@/services/calculations'
 import { getValidUpgradesForWeapon } from '@/utils/weaponFunctions'
 import WeaponRow from '@/components/WeaponRow.vue'
-import RarityHeader from '@/components/RarityHeader.vue'
-import ClassModSelector from '@/components/ClassModSelector.vue'
+import HeaderRow from '@/components/HeaderRow.vue'
 import { ref, watch, computed } from 'vue'
 
 const selectedClassMod = ref<ClassMod | null>(null)
@@ -87,19 +86,13 @@ function getAvailableWeapons(currentIndex: number): Weapon[] {
   <main>
     <h1>Dwarf Math - Weapon Damage Calculator</h1>
 
-    <ClassModSelector
+    <HeaderRow
       :class-mods="classMods"
       :selected-class-mod="selectedClassMod"
       @update:selected-class-mod="selectedClassMod = $event"
     />
 
-    <RarityHeader />
-
     <div v-if="selectedClassMod" class="equipped-weapons-section">
-      <div class="section-header">
-        <h2>Equipped Weapons</h2>
-      </div>
-
       <div class="weapon-list">
         <div v-for="(weapon, index) in equippedWeapons" :key="index" class="weapon-slot">
           <WeaponRow
@@ -108,7 +101,7 @@ function getAvailableWeapons(currentIndex: number): Weapon[] {
             :character-stats="characterStats"
             :upgrades="getValidUpgrades(weapon)"
             :get-upgraded-d-p-s="getUpgradedDPS"
-            :removable="true"
+            :removable="index !== 0"
             @remove="setWeapon(index, null)"
           />
 
