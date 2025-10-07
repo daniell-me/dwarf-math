@@ -1,16 +1,28 @@
 <script setup lang="ts">
-import { weapons, defaultCharacterStats } from '@/data/weapons'
+import { weapons, defaultCharacterStats, weaponsMap } from '@/data/weapons'
 import { upgrades } from '@/data/upgrades'
-import type { Weapon, CharacterStats, Upgrade } from '@/data/types'
-import { Rarity } from '@/data/types'
+import { classMods } from '@/data/classMods'
+import type { Weapon, CharacterStats, Upgrade, ClassMod } from '@/data/types'
 import { calculateDPS, calculateDPSWithStatUpgrade } from '@/services/calculations'
 import { getValidUpgradesForWeapon } from '@/utils/weaponFunctions'
-import WeaponCard from '@/components/WeaponCard.vue'
-import { ref } from 'vue'
+import WeaponRow from '@/components/WeaponRow.vue'
+import RarityHeader from '@/components/RarityHeader.vue'
+import ClassModSelector from '@/components/ClassModSelector.vue'
+import { ref, watch } from 'vue'
 
 const characterStats = ref<CharacterStats>({ ...defaultCharacterStats })
+const selectedClassMod = ref<ClassMod | null>(null)
+const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
 
-const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const
+// When class mod changes, initialize with starting weapon in first slot
+watch(selectedClassMod, (newClassMod) => {
+  if (newClassMod && newClassMod.startingWeaponId) {
+    const startingWeapon = weaponsMap[newClassMod.startingWeaponId]
+    equippedWeapons.value = [startingWeapon, null, null, null]
+  } else {
+    equippedWeapons.value = [null, null, null, null]
+  }
+})
 
 function getWeaponDPS(weapon: Weapon): number {
   return calculateDPS(weapon, characterStats.value)
@@ -27,47 +39,71 @@ function getUpgradedDPS(weapon: Weapon, upgrade: Upgrade, rarity: keyof Upgrade[
 function getValidUpgrades(weapon: Weapon): Upgrade[] {
   return getValidUpgradesForWeapon(weapon, upgrades)
 }
+
+function setWeapon(index: number, weapon: Weapon | null) {
+  equippedWeapons.value[index] = weapon
+}
+
+function getAvailableWeapons(currentIndex: number): Weapon[] {
+  return weapons.filter(weapon => {
+    // Check if weapon is not already equipped in other slots
+    return !equippedWeapons.value.some((w, i) => i !== currentIndex && w?.name === weapon.name)
+  })
+}
 </script>
 
 <template>
   <main>
     <h1>Dwarf Math - Weapon Damage Calculator</h1>
 
-    <div class="weapon-list">
-      <div v-for="weapon in weapons" :key="weapon.name" class="weapon-row">
-        <!-- Weapon Card -->
-        <div class="weapon-card-container">
-          <WeaponCard :weapon="weapon" />
-        </div>
+    <ClassModSelector
+      :class-mods="classMods"
+      :selected-class-mod="selectedClassMod"
+      @update:selected-class-mod="selectedClassMod = $event"
+    />
 
-        <!-- Current DPS -->
-        <div class="current-dps">
-          <div class="dps-label">Current DPS</div>
-          <div class="dps-value">{{ getWeaponDPS(weapon) }}</div>
-        </div>
+    <RarityHeader />
 
-        <!-- Upgrade Table -->
-        <div class="upgrade-table">
-          <table>
-            <thead>
-              <tr>
-                <th class="upgrade-type-header">Upgrade Type</th>
-                <th v-for="rarity in rarities" :key="rarity" class="rarity-header">
-                  {{ rarity }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="upgrade in getValidUpgrades(weapon)" :key="upgrade.name">
-                <td class="upgrade-type">{{ upgrade.name }}</td>
-                <td v-for="rarity in rarities" :key="rarity" class="dps-cell">
-                  {{ getUpgradedDPS(weapon, upgrade, rarity) || '-' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+    <div v-if="selectedClassMod" class="equipped-weapons-section">
+      <div class="section-header">
+        <h2>Equipped Weapons</h2>
+      </div>
+
+      <div class="weapon-list">
+        <div v-for="(weapon, index) in equippedWeapons" :key="index" class="weapon-slot">
+          <WeaponRow
+            v-if="weapon"
+            :weapon="weapon"
+            :character-stats="characterStats"
+            :upgrades="getValidUpgrades(weapon)"
+            :get-weapon-d-p-s="getWeaponDPS"
+            :get-upgraded-d-p-s="getUpgradedDPS"
+            :removable="true"
+            @remove="setWeapon(index, null)"
+          />
+
+          <div v-else class="empty-weapon-slot">
+            <h3>Weapon Slot {{ index + 1 }}</h3>
+            <select @change="(e) => {
+              const target = e.target as HTMLSelectElement
+              const weaponName = target.value
+              if (weaponName) {
+                const weapon = weapons.find(w => w.name === weaponName)
+                if (weapon) setWeapon(index, weapon)
+              }
+            }">
+              <option value="">Select a weapon...</option>
+              <option v-for="weapon in getAvailableWeapons(index)" :key="weapon.name" :value="weapon.name">
+                {{ weapon.name }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
+    </div>
+
+    <div v-else class="no-class-selected">
+      <p>Select a class mod to begin</p>
     </div>
   </main>
 </template>
@@ -84,101 +120,58 @@ h1 {
   margin-bottom: 2rem;
 }
 
+.section-header {
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  color: var(--color-heading);
+}
+
 .weapon-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-/* Column layout variables for consistency */
-:root {
-  --weapon-col-width: 300px;
-  --dps-col-width: 120px;
-  --upgrade-type-col-width: 140px;
-  --rarity-col-width: 80px;
+.weapon-slot {
+  min-height: 100px;
 }
 
-
-.weapon-row {
-  display: flex;
-  flex-direction: row;
-  gap: 2rem;
-  align-items: flex-start;
+.empty-weapon-slot {
   padding: 1.5rem;
-  border: 1px solid var(--color-border);
+  border: 2px dashed var(--color-border);
   border-radius: 8px;
-  background: var(--color-background-soft);
+  background: var(--color-background-mute);
 }
 
-.weapon-card-container {
-  width: var(--weapon-col-width);
+.empty-weapon-slot h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
 }
 
-.current-dps {
-  width: var(--dps-col-width);
-  text-align: center;
-}
-
-.dps-label {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.5rem;
-}
-
-.dps-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  font-family: monospace;
-}
-
-.upgrade-table {
-  flex: 1;
-  min-width: 600px;
-}
-
-.upgrade-table table {
+.empty-weapon-slot select {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.upgrade-table th,
-.upgrade-table td {
-  padding: 0.5rem;
-  border: 1px solid var(--color-border-hover);
-  text-align: center;
-}
-
-.upgrade-table th {
-  background: var(--color-background-soft);
-  font-weight: bold;
-}
-
-.upgrade-table .rarity-header {
-  text-transform: capitalize;
-}
-
-.upgrade-table .upgrade-type-header {
-  text-align: center;
-}
-
-.upgrade-type {
-  text-align: left !important;
-  font-weight: 500;
-  width: var(--upgrade-type-col-width);
-  min-width: var(--upgrade-type-col-width);
-  max-width: var(--upgrade-type-col-width);
-}
-
-.dps-cell {
-  font-family: monospace;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
   background: var(--color-background);
-  width: var(--rarity-col-width);
-  min-width: var(--rarity-col-width);
-  max-width: var(--rarity-col-width);
+  color: var(--color-text);
+  cursor: pointer;
 }
 
-.dps-cell:hover {
-  background: var(--color-background-soft);
+.empty-weapon-slot select:hover {
+  border-color: var(--color-border-hover);
+}
+
+.no-class-selected {
+  padding: 3rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 1.2rem;
 }
 </style>

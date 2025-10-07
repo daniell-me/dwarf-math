@@ -20,7 +20,15 @@ export const WeaponTag = {
   drone: 'drone',
   acid: 'acid',
   electrical: 'electrical',
-  fire: 'fire'
+  fire: 'fire',
+  cold: 'cold',
+  plasma: 'plasma',
+  explosive: 'explosive',
+  throwable: 'throwable',
+  turret: 'turret',
+  light: 'light',
+  heavy: 'heavy',
+  construct: 'construct'
 } as const
 
 export type WeaponTag = typeof WeaponTag[keyof typeof WeaponTag]
@@ -36,12 +44,14 @@ export const Rarity = {
 export type Rarity = typeof Rarity[keyof typeof Rarity]
 
 export interface Weapon {
+  id: string
   name: string
   baseDmg: number
   fireRate: number
   clipSize: number
   reloadTime: number
   tags: WeaponTag[]
+  class: Class
 }
 
 export interface CharacterStats {
@@ -56,18 +66,19 @@ export interface Upgrade {
   values: Partial<Record<Rarity, number>>
 }
 
-export const Dwarves = {
-  gunner: 'gunner',
-  scout: 'scout',
-  driller: 'driller',
-  engineer: 'engineer'
+export const Class = {
+  scout: 'Scout',
+  gunner: 'Gunner',
+  engineer: 'Engineer',
+  driller: 'Driller',
 } as const
 
-export type Dwarves = typeof Dwarves[keyof typeof Dwarves]
+export type Class = typeof Class[keyof typeof Class]
 
 export interface ClassMod {
   name: string
-  class: Dwarves
-  startingWeapon: Weapon
+  class: Class
+  startingWeaponId: string
+  availableWeaponTags: WeaponTag[]
   statModifications?: Partial<CharacterStats>
 }

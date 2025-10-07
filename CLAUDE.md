@@ -9,6 +9,12 @@
 - Prefer separate files for data models over inline definitions
 - Use proper TypeScript interfaces and types for all data structures
 
+## CSS Management
+- **Store all global styles in App.vue** within a non-scoped `<style>` block
+- Do not use separate CSS files for global styles
+- This keeps all Vue-related styling within `.vue` files
+- CSS variables and global styles are defined in `App.vue` and available throughout the app
+
 ## Development Process
 - **Always run `npm run type-check` before considering any coding task complete**
 - TypeScript errors must be resolved before the task is finished
