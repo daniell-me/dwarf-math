@@ -28,27 +28,34 @@ export function calculateDPSWithUpgrade(
   critChance: number,
   critDmg: number,
   upgrade: Upgrade,
-  rarity: Rarity
+  rarity: Rarity,
+  characterDamageMultiplier: number = 1.0,
+  characterReloadSpeedMultiplier: number = 1.0
 ): number {
   const upgradeValue = upgrade.values[rarity]
   if (upgradeValue === undefined) {
     throw new Error(`calculateDPSWithUpgrade: upgrade '${upgrade.name}' does not have a value for rarity '${rarity}'`)
   }
 
+  // Apply character stat bonuses first (these are multipliers)
+  const baseDmgWithCharStats = dmg * characterDamageMultiplier
+  const baseReloadTimeWithCharStats = reloadTime / characterReloadSpeedMultiplier
+
   // Apply upgrade to the appropriate stat
-  let modifiedDmg = dmg
+  let modifiedDmg = baseDmgWithCharStats
   let modifiedFireRate = fireRate
-  let modifiedReloadTime = reloadTime
+  let modifiedReloadTime = baseReloadTimeWithCharStats
 
   switch (upgrade.stat) {
     case 'dmg':
-      modifiedDmg = dmg * (1 + upgradeValue)
+      modifiedDmg = baseDmgWithCharStats * (1 + upgradeValue)
       break
     case 'fireRate':
       modifiedFireRate = fireRate * (1 + upgradeValue)
       break
     case 'reloadSpeed':
-      modifiedReloadTime = reloadTime * (1 - upgradeValue)
+      // Reload speed upgrade reduces reload time
+      modifiedReloadTime = baseReloadTimeWithCharStats * (1 - upgradeValue)
       break
     // Add other cases as needed
   }
@@ -76,20 +83,67 @@ export function calculateDPSWithUpgrade(
  * TODO: Add support for Overclocks and Artifacts
  */
 export function calculateCurrentStats(
-  baseStats: CharacterStats,
+  baseStats: Partial<CharacterStats>,
   classMod: ClassMod | null,
   metaUpgrades: MetaUpgrade[],
   metaUpgradeLevels: Record<string, number>,
   flatGearBonuses: Partial<CharacterStats> = {},
   percentGearBonuses: Partial<CharacterStats> = {}
 ): CharacterStats {
-  const currentStats: CharacterStats = { ...baseStats }
+  // Initialize all stats with defaults
+  const currentStats: CharacterStats = {
+    health: 0,
+    armor: 0,
+    dodgeChance: 0,
+    critChance: 0,
+    critDamage: 1.0, // Default multiplier
+    xpGain: 0,
+    miningSpeed: 0,
+    moveSpeed: 0,
+    weaponRange: 0,
+    reloadSpeed: 1.0, // Default multiplier (1.0 = no bonus)
+    damage: 1.0, // Default multiplier (1.0 = no bonus)
+    explosionRadius: 0,
+    statusDamage: 0
+  }
 
-  // For each stat in CharacterStats
-  const statKeys = Object.keys(baseStats) as Array<keyof CharacterStats>
+  // Weapon multiplier stats that start at 1.0 and multiply bonuses
+  const weaponMultiplierStats: Array<keyof CharacterStats> = ['damage', 'reloadSpeed']
+
+  // For each stat, layer on all the sources
+  const statKeys = Object.keys(currentStats) as Array<keyof CharacterStats>
 
   for (const statKey of statKeys) {
-    const baseValue = baseStats[statKey]
+    // For weapon multiplier stats, multiply all percentage bonuses together
+    if (weaponMultiplierStats.includes(statKey)) {
+      let multiplier = 1.0
+
+      // Apply meta upgrade bonuses multiplicatively
+      for (const metaUpgrade of metaUpgrades) {
+        if (metaUpgrade.stat === statKey && metaUpgrade.bonusType === 'percentage') {
+          const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
+          if (level > 0) {
+            multiplier *= (1 + metaUpgrade.bonusPerLevel * level)
+          }
+        }
+      }
+
+      // Apply class mod bonuses multiplicatively
+      if (classMod?.statMultipliers?.[statKey] !== undefined) {
+        multiplier *= (1 + classMod.statMultipliers[statKey]!)
+      }
+
+      // Apply gear bonuses multiplicatively
+      if (percentGearBonuses[statKey]) {
+        multiplier *= (1 + percentGearBonuses[statKey]!)
+      }
+
+      currentStats[statKey] = multiplier as any
+      continue
+    }
+
+    // For regular stats, use the bucket formula
+    const baseValue = baseStats[statKey] ?? 0
     if (baseValue === undefined) continue
 
     // Skill bucket (currently 1.0, no skill upgrades yet)

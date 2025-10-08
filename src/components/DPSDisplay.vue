@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Weapon, CharacterStats } from '@/data/types'
 import { calculateDPS } from '@/services/calculations'
 
@@ -9,14 +10,25 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const dps = calculateDPS(
-  props.weapon.baseDmg,
-  props.weapon.fireRate,
-  props.weapon.reloadTime,
-  props.weapon.clipSize,
-  props.characterStats.critChance,
-  props.characterStats.critDamage
-)
+const dps = computed(() => {
+  // Apply character stat bonuses to weapon stats
+  // damage and reloadSpeed are multipliers (1.0 = no bonus, 1.5 = 50% bonus)
+  const damageMultiplier = props.characterStats.damage ?? 1.0
+  const reloadSpeedMultiplier = props.characterStats.reloadSpeed ?? 1.0
+
+  const modifiedDamage = props.weapon.baseDmg * damageMultiplier
+  // Reload speed bonus reduces reload time (higher multiplier = faster reload = lower time)
+  const modifiedReloadTime = props.weapon.reloadTime / reloadSpeedMultiplier
+
+  return calculateDPS(
+    modifiedDamage,
+    props.weapon.fireRate,
+    modifiedReloadTime,
+    props.weapon.clipSize,
+    props.characterStats.critChance,
+    props.characterStats.critDamage
+  )
+})
 </script>
 
 <template>

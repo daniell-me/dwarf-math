@@ -7,15 +7,14 @@ import { metaUpgrades } from '@/data/metaUpgrades'
 import type { Weapon, CharacterStats, Upgrade, ClassMod } from '@/data/types'
 import { calculateCurrentStats, calculateDPSWithUpgrade } from '@/services/calculations'
 import { getValidUpgradesForWeapon } from '@/utils/weaponFunctions'
+import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
 import WeaponRow from '@/components/WeaponRow.vue'
 import HeaderRow from '@/components/HeaderRow.vue'
 import { ref, watch, computed } from 'vue'
 
 const selectedClassMod = ref<ClassMod | null>(null)
 const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
-
-// TODO: Implement cross-session state tracking for meta upgrade levels
-const metaUpgradeLevels = ref<Record<string, number>>({})
+const metaUpgradesStore = useMetaUpgradesStore()
 
 // TODO: Add UI for gear bonuses
 const flatGearBonuses = ref<Partial<CharacterStats>>({})
@@ -31,7 +30,7 @@ const characterStats = computed<CharacterStats | null>(() => {
     baseStats,
     selectedClassMod.value,
     metaUpgrades,
-    metaUpgradeLevels.value,
+    metaUpgradesStore.levels,
     flatGearBonuses.value,
     percentGearBonuses.value
   )
@@ -62,7 +61,9 @@ function getUpgradedDPS(weapon: Weapon, upgrade: Upgrade, rarity: keyof Upgrade[
     characterStats.value.critChance,
     characterStats.value.critDamage,
     upgrade,
-    rarity
+    rarity,
+    characterStats.value.damage ?? 1.0,
+    characterStats.value.reloadSpeed ?? 1.0
   )
 }
 
@@ -79,6 +80,11 @@ function getAvailableWeapons(currentIndex: number): Weapon[] {
     // Check if weapon is not already equipped in other slots
     return !equippedWeapons.value.some((w, i) => i !== currentIndex && w?.name === weapon.name)
   })
+}
+
+function formatStatValue(value: number | undefined): string {
+  if (value === undefined) return 'N/A'
+  return typeof value === 'number' ? value.toFixed(3) : String(value)
 }
 </script>
 
@@ -127,6 +133,17 @@ function getAvailableWeapons(currentIndex: number): Weapon[] {
 
     <div v-else class="no-class-selected">
       <p>Select a class mod to begin</p>
+    </div>
+
+    <!-- Debug Stats Display -->
+    <div v-if="characterStats" class="debug-stats">
+      <h4>Character Stats</h4>
+      <div class="stats-grid">
+        <div v-for="(value, key) in characterStats" :key="key" class="stat-item">
+          <span class="stat-name">{{ key }}:</span>
+          <span class="stat-value">{{ formatStatValue(value) }}</span>
+        </div>
+      </div>
     </div>
   </main>
 </template>
@@ -196,5 +213,53 @@ h1 {
   text-align: center;
   color: var(--color-text-muted);
   font-size: 1.2rem;
+}
+
+.debug-stats {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  max-width: 300px;
+  max-height: 600px;
+  overflow-y: auto;
+  background: var(--color-background-soft);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.875rem;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.debug-stats h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: var(--color-heading);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.stat-name {
+  color: var(--color-text-muted);
+  font-family: monospace;
+}
+
+.stat-value {
+  color: var(--color-text);
+  font-family: monospace;
+  font-weight: bold;
 }
 </style>

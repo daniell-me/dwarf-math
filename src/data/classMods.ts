@@ -17,7 +17,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Recon',
     class: Class.scout,
-    startingWeaponId: WeaponIds.boomstick,
+    startingWeaponId: WeaponIds.zhukov,
     availableWeaponTags: [WeaponTag.light],
     statMultipliers: {
       dodgeChance: 0.25
@@ -29,7 +29,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Sharp Shooter',
     class: Class.scout,
-    startingWeaponId: WeaponIds.zhukov,
+    startingWeaponId: WeaponIds.m1000,
     availableWeaponTags: [],
     statMultipliers: {
       critChance: 0.15,
@@ -44,7 +44,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Weapons Specialist',
     class: Class.gunner,
-    startingWeaponId: WeaponIds.gk2,
+    startingWeaponId: WeaponIds.minigun,
     availableWeaponTags: [WeaponTag.projectile],
     conditionalEffects: [
       'After firing 100 shots from Projectile weapons: Fire 8 high damage projectiles in all directions'
@@ -53,7 +53,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Juggernaut',
     class: Class.gunner,
-    startingWeaponId: WeaponIds.boomstick,
+    startingWeaponId: WeaponIds.bulldog,
     availableWeaponTags: [],
     statMultipliers: {
       armor: 10,  // Flat bonus, not percentage
@@ -67,7 +67,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Heavy Gunner',
     class: Class.gunner,
-    startingWeaponId: WeaponIds.zhukov,
+    startingWeaponId: WeaponIds.thunderhead,
     availableWeaponTags: [WeaponTag.heavy],
     statMultipliers: {
       moveSpeed: -0.10
@@ -82,7 +82,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Maintenance Worker',
     class: Class.engineer,
-    startingWeaponId: WeaponIds.gk2,
+    startingWeaponId: WeaponIds.turret,
     availableWeaponTags: [WeaponTag.construct],
     conditionalEffects: [
       'Construct weapons: +10% Damage',
@@ -92,7 +92,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Tinkerer',
     class: Class.engineer,
-    startingWeaponId: WeaponIds.zhukov,
+    startingWeaponId: WeaponIds.warthog,
     availableWeaponTags: [],
     statMultipliers: {
       xpGain: 0.10
@@ -104,7 +104,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Demolitionist',
     class: Class.engineer,
-    startingWeaponId: WeaponIds.m1000,
+    startingWeaponId: WeaponIds.pgl,
     availableWeaponTags: [WeaponTag.explosive],
     conditionalEffects: [
       'Explosive weapons: +20% Explosion Radius',
@@ -116,7 +116,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Foreman',
     class: Class.driller,
-    startingWeaponId: WeaponIds.gk2,
+    startingWeaponId: WeaponIds.subata,
     availableWeaponTags: [],
     conditionalEffects: [
       'Each time mining: +2% Mining Speed for 2 seconds (stacks up to 25 times)'
@@ -125,7 +125,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Interrogator',
     class: Class.driller,
-    startingWeaponId: WeaponIds.boomstick,
+    startingWeaponId: WeaponIds.flamethrower,
     availableWeaponTags: [WeaponTag.fire, WeaponTag.acid],
     statMultipliers: {
       statusDamage: 1.00,
@@ -135,7 +135,7 @@ export const classMods: ClassMod[] = [
   {
     name: 'Strong Armed',
     class: Class.driller,
-    startingWeaponId: WeaponIds.m1000,
+    startingWeaponId: WeaponIds.axe,
     availableWeaponTags: [WeaponTag.throwable],
     statMultipliers: {
       weaponRange: 0.20
