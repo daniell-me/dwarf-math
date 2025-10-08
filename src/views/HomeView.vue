@@ -76,10 +76,28 @@ function setWeapon(index: number, weapon: Weapon | null) {
 }
 
 function getAvailableWeapons(currentIndex: number): Weapon[] {
-  return weapons.filter(weapon => {
-    // Check if weapon is not already equipped in other slots
-    return !equippedWeapons.value.some((w, i) => i !== currentIndex && w?.name === weapon.name)
-  })
+  if (!selectedClassMod.value) return []
+
+  return weapons
+    .filter(weapon => {
+      // Check if weapon is not already equipped in other slots
+      if (equippedWeapons.value.some((w, i) => i !== currentIndex && w?.name === weapon.name)) {
+        return false
+      }
+
+      // Allow if weapon is of the selected class
+      if (weapon.class === selectedClassMod.value!.class) {
+        return true
+      }
+
+      // Allow if weapon has any tag that matches the class mod's available weapon tags
+      const hasMatchingTag = selectedClassMod.value!.availableWeaponTags.some(tag =>
+        weapon.tags.includes(tag)
+      )
+
+      return hasMatchingTag
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 function formatStatValue(value: number | undefined): string {
