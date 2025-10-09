@@ -1,7 +1,7 @@
 import type { CharacterStats } from './types'
 import { Class } from './types'
 
-export const classBaseStats: Record<Class, CharacterStats> = {
+export const classBaseStats: Record<Class, Partial<CharacterStats>> = {
   [Class.scout]: {
     health: 120,
     dodgeChance: 0.05,

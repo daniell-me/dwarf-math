@@ -217,7 +217,7 @@ const weaponsList: Weapon[] = [
     class: Class.engineer,
   },
   {
-    id: 'lmg-turret',
+    id: 'turret',
     name: 'LMG Gun Platform',
     baseDmg: 18,
     fireRate: 3.33,
