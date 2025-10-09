@@ -1,18 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { RouterView } from 'vue-router'
-import MetaUpgradesPanel from './components/MetaUpgradesPanel.vue'
-
-const showMetaUpgrades = ref(false)
 </script>
 
 <template>
   <div class="app-container">
-    <button @click="showMetaUpgrades = true" class="meta-upgrades-button">
-      Meta Upgrades
-    </button>
     <RouterView />
-    <MetaUpgradesPanel v-if="showMetaUpgrades" @close="showMetaUpgrades = false" />
   </div>
 </template>
 
@@ -145,28 +137,6 @@ a,
 /* App container */
 .app-container {
   position: relative;
-}
-
-/* Meta Upgrades Button */
-.meta-upgrades-button {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--color-background-soft);
-  border: 2px solid var(--color-border);
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--color-text);
-  z-index: 100;
-  transition: all 0.2s;
-}
-
-.meta-upgrades-button:hover {
-  background: var(--color-background-mute);
-  border-color: var(--color-border-hover);
-  transform: translateY(-2px);
 }
 
 .vt-c-green {

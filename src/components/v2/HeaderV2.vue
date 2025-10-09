@@ -9,6 +9,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:selectedClassMod', value: ClassMod): void
+  (e: 'openMetaUpgrades'): void
 }
 
 const props = defineProps<Props>()
@@ -57,83 +58,85 @@ function selectModByName(event: Event) {
 </script>
 
 <template>
-  <div class="class-mod-selector">
-    <div class="selector-section">
-      <label for="class-select" class="selector-label">Class:</label>
+  <header class="header-v2">
+    <div class="left-section">
       <select
-        id="class-select"
         :value="selectedClass || ''"
         @change="selectClass"
-        class="selector-dropdown"
+        class="class-select"
       >
         <option v-for="className in classes" :key="className" :value="className">
           {{ className }}
         </option>
       </select>
-    </div>
 
-    <div v-if="selectedClass" class="selector-section">
-      <label for="mod-select" class="selector-label">Class Mod:</label>
       <select
-        id="mod-select"
+        v-if="selectedClass"
         :value="selectedClassMod?.name || ''"
         @change="selectModByName"
-        class="selector-dropdown"
+        class="mod-select"
       >
-        <option value="" disabled>Select a class mod</option>
+        <option value="" disabled>Select class mod</option>
         <option v-for="mod in availableMods" :key="mod.name" :value="mod.name">
           {{ mod.name }}
         </option>
       </select>
     </div>
-  </div>
+
+    <div class="right-section">
+      <button @click="emit('openMetaUpgrades')" class="header-button">
+        Meta Upgrades
+      </button>
+    </div>
+  </header>
 </template>
 
 <style scoped>
-.class-mod-selector {
+.header-v2 {
   display: flex;
-  flex-direction: row;
-  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
   padding: 0.5rem 1rem;
   background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  height: 50px;
+  min-height: 50px;
 }
 
-.selector-section {
+.left-section,
+.right-section {
   display: flex;
-  flex-direction: row;
-  gap: 0.5rem;
+  gap: 0.75rem;
   align-items: center;
 }
 
-.selector-label {
-  margin: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-.selector-dropdown {
-  padding: 0.3rem 0.6rem;
-  border: 1px solid var(--color-border-hover);
+.class-select,
+.mod-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   background: var(--color-background);
   color: var(--color-text);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  text-transform: capitalize;
-  min-width: 120px;
 }
 
-.selector-dropdown:hover {
-  border-color: var(--color-border);
+.class-select:hover,
+.mod-select:hover {
+  border-color: var(--color-border-hover);
 }
 
-.selector-dropdown:focus {
-  outline: 2px solid var(--color-heading);
-  outline-offset: 1px;
+.header-button {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.header-button:hover {
+  background: var(--color-background-mute);
 }
 </style>

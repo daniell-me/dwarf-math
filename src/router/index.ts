@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import HomeViewV2 from '../views/v2/HomeViewV2.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,9 +7,11 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: HomeViewV2,
     },
   ],
+  // Ensure trailing slash doesn't matter
+  strict: false,
 })
 
 export default router

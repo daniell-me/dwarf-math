@@ -123,7 +123,8 @@ export function calculateCurrentStats(
         if (metaUpgrade.stat === statKey && metaUpgrade.bonusType === 'percentage') {
           const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
           if (level > 0) {
-            multiplier *= (1 + metaUpgrade.bonusPerLevel * level)
+            const bonus = metaUpgrade.bonusValues[level - 1] ?? 0
+            multiplier *= (1 + bonus)
           }
         }
       }
@@ -160,7 +161,8 @@ export function calculateCurrentStats(
       if (metaUpgrade.stat === statKey && metaUpgrade.bonusType === 'percentage') {
         const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
         if (level > 0) {
-          metaMultiplier *= (1 + metaUpgrade.bonusPerLevel * level)
+          const bonus = metaUpgrade.bonusValues[level - 1] ?? 0
+          metaMultiplier *= (1 + bonus)
         }
       }
     }
@@ -188,7 +190,8 @@ export function calculateCurrentStats(
         const statKey = metaUpgrade.stat as keyof CharacterStats
         const currentValue = currentStats[statKey]
         if (typeof currentValue === 'number') {
-          currentStats[statKey] = (currentValue + metaUpgrade.bonusPerLevel * level) as any
+          const bonus = metaUpgrade.bonusValues[level - 1] ?? 0
+          currentStats[statKey] = (currentValue + bonus) as any
         }
       }
     }
