@@ -57,11 +57,11 @@ function formatStatName(stat: string): string {
 }
 
 function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
-  if (upgrade.bonusPerLevel === 0) {
-    return '(exact values unknown)'
+  if (upgrade.currentLevel === 0) {
+    return '+0'
   }
 
-  const totalBonus = upgrade.bonusPerLevel * upgrade.currentLevel
+  const totalBonus = upgrade.bonusValues[upgrade.currentLevel - 1] ?? 0
 
   if (upgrade.bonusType === 'percentage') {
     return `+${(totalBonus * 100).toFixed(0)}%`
@@ -179,7 +179,7 @@ function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
 }
 
 .upgrade-bonus {
-  color: var(--vt-c-green);
+  color: hsla(160, 100%, 37%, 1);
   font-weight: 600;
   margin-left: 0.5rem;
 }

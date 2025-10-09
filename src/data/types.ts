@@ -43,6 +43,8 @@ export const Rarity = {
 
 export type Rarity = typeof Rarity[keyof typeof Rarity]
 
+export const rarities: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary']
+
 export interface Weapon {
   id: string
   name: string
@@ -100,7 +102,7 @@ export interface MetaUpgrade {
   name: string
   stat: string  // Can be CharacterStats key or non-combat stat
   maxLevel: number
-  bonusPerLevel: number
+  bonusValues: number[]  // Array of cumulative bonus values for each level (1-12)
   bonusType: 'percentage' | 'flat'
   description?: string
 }
