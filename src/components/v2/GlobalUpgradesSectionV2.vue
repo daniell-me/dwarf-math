@@ -49,6 +49,9 @@ const visibleTagUpgrades = computed<Upgrade[]>(() => {
 
 <style scoped>
 .global-upgrades-section {
+  /* Override upgrade name width to match weapon tables */
+  --upgrade-name-width: 140px;
+
   display: flex;
   flex-direction: column;
   height: 100%;

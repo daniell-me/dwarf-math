@@ -1,5 +1,5 @@
 import type { Upgrade } from './types'
-import { Rarity, Stat, WeaponTag, UpgradeCategory } from './types'
+import { Stat, WeaponTag, UpgradeCategory } from './types'
 
 /**
  * UPGRADE STRUCTURE GUIDE
@@ -30,76 +30,83 @@ import { Rarity, Stat, WeaponTag, UpgradeCategory } from './types'
  * }
  */
 
-// Weapon Upgrades - Mid-dive upgrades that increase weapon level
-export const upgrades: Upgrade[] = [
+// All Upgrades - Consolidated list of all mid-dive upgrades
+export const allUpgrades: Upgrade[] = [
+  // ===== WEAPON UPGRADES - Mid-dive upgrades that increase weapon level =====
   {
     name: 'Add Punch',
     stat: Stat.piercing,
     tags: [WeaponTag.projectile],
     category: UpgradeCategory.weapon,
-    values: [null, null, 0.25, 0.50, null]
+    values: [null, null, 0.25, 0.50, null],
+    description: 'Increases piercing of all [PROJECTILE] weapons'
   },
   {
     name: 'Bigger Cogs',
     stat: Stat.dmg,
     tags: [WeaponTag.all],
     category: UpgradeCategory.weapon,
-    values: [0.10, 0.15, 0.25, 0.35, 0.50]
+    values: [0.10, 0.15, 0.25, 0.35, 0.50],
+    description: 'Increases damage of all weapons'
   },
   {
     name: 'Loosen Bolts',
     stat: Stat.reloadSpeed,
     tags: [WeaponTag.all],
     category: UpgradeCategory.weapon,
-    values: [0.10, 0.15, 0.25, 0.35, 0.50]
+    values: [0.10, 0.15, 0.25, 0.35, 0.50],
+    description: 'Increases reload speed of all weapons'
   },
   {
     name: 'More Drones!',
     stat: Stat.droneCount,
     tags: [WeaponTag.drone],
     category: UpgradeCategory.weapon,
-    values: [null, null, null, null, 1]
+    values: [null, null, null, null, 1],
+    description: 'Adds an additional drone to all [DRONE] weapons'
   },
   {
     name: 'Open Valves',
     stat: Stat.range,
     tags: [WeaponTag.beam],
     category: UpgradeCategory.weapon,
-    values: [null, null, 0.10, 0.15, 0.25]
+    values: [null, null, 0.10, 0.15, 0.25],
+    description: 'Increases the range of all [BEAM] weapons'
   },
   {
     name: 'Paint Job',
     stat: Stat.weaponLevel,
     tags: [WeaponTag.all],
     category: UpgradeCategory.weapon,
-    values: [null, null, 2, 3, null]
+    values: [null, null, 2, 3, null],
+    description: 'Increases weapon level of all weapons'
   },
   {
     name: 'Split Nozzles',
     stat: Stat.beamCount,
     tags: [WeaponTag.beam],
     category: UpgradeCategory.weapon,
-    values: [null, null, null, null, 1]
+    values: [null, null, null, null, 1],
+    description: 'Adds an additional beam to all [BEAM] weapons'
   },
   {
     name: 'Tighten Springs',
     stat: Stat.fireRate,
     tags: [WeaponTag.projectile],
     category: UpgradeCategory.weapon,
-    values: [0.10, 0.15, 0.25, 0.35, 0.50]
+    values: [0.10, 0.15, 0.25, 0.35, 0.50],
+    description: 'Increases fire rate of all [PROJECTILE] weapons'
   },
   {
     name: 'Tweak Potency',
     stat: Stat.statusPotency,
     tags: [WeaponTag.acid, WeaponTag.electrical, WeaponTag.fire],
     category: UpgradeCategory.weapon,
-    values: [null, 0.15, 0.25, 0.35, null]
-  }
-]
+    values: [null, 0.15, 0.25, 0.35, null],
+    description: 'Increases status potency of all [ACID], [ELECTRICAL], and [FIRE] weapons'
+  },
 
-// Tag Upgrades - Tag Mastery and Weapon-affecting Player Stats
-export const tagUpgrades: Upgrade[] = [
-  // Apply Dwarf Tape - Increases weapon lifetime
+  // ===== TAG UPGRADES - Tag Mastery and Weapon-affecting Player Stats =====
   {
     name: 'Apply Dwarf Tape',
     stat: Stat.lifetime,
@@ -124,8 +131,6 @@ export const tagUpgrades: Upgrade[] = [
     values: [null, 0.10, 0.20, 0.30, 0.40],
     description: 'Increases the expected lifetime of all [DRONE] weapons'
   },
-
-  // Bigger Cogs - Increases damage by element type
   {
     name: 'Bigger Cogs',
     stat: Stat.dmg,
@@ -246,8 +251,6 @@ export const tagUpgrades: Upgrade[] = [
     values: [null, 0.10, 0.15, 0.20, 0.30],
     description: 'Increases damage of all [THROWABLE] weapons'
   },
-
-  // Compacted Powder - Increases explosion radius
   {
     name: 'Compacted Powder',
     stat: Stat.explosionRadius,
@@ -256,8 +259,6 @@ export const tagUpgrades: Upgrade[] = [
     values: [null, null, 0.15, 0.20, 0.30],
     description: 'Increases explosion radius of all [EXPLOSIVE] weapons'
   },
-
-  // Loosen Bolts - Increases reload speed by weapon weight class
   {
     name: 'Loosen Bolts',
     stat: Stat.reloadSpeed,
@@ -348,10 +349,7 @@ export const tagUpgrades: Upgrade[] = [
     values: [null, null, 0.12, 0.18, null],
     description: 'Increase all critical chance of all [ELECTRICAL] weapons'
   },
-]
-
-// Player Upgrades - Non-combat and Utility Stats
-export const playerUpgrades: Upgrade[] = [
+  // ===== PLAYER UPGRADES - Non-combat and Utility Stats =====
   {
     name: 'Dwarven Heritage',
     stat: Stat.miningSpeed,
@@ -425,3 +423,8 @@ export const playerUpgrades: Upgrade[] = [
     description: 'Increases status effect damage'
   }
 ]
+
+// Convenience exports - filtered by category
+export const weaponUpgrades = allUpgrades.filter(u => u.category === UpgradeCategory.weapon)
+export const tagUpgrades = allUpgrades.filter(u => u.category === UpgradeCategory.tag)
+export const playerUpgrades = allUpgrades.filter(u => u.category === UpgradeCategory.player)

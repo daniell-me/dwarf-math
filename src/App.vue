@@ -21,6 +21,11 @@ import { RouterView } from 'vue-router'
 
   --vt-c-indigo: #2c3e50;
 
+  /* Green colors */
+  --vt-c-green: hsla(160, 100%, 37%, 1);
+  --vt-c-green-soft: hsla(160, 100%, 37%, 0.2);
+  --vt-c-green-mute: hsla(160, 100%, 32%, 1);
+
   /* Rarity colors */
   --rarity-common: #cccccc;
   --rarity-uncommon: #76cd00;
@@ -53,6 +58,14 @@ import { RouterView } from 'vue-router'
   --color-text-muted: var(--vt-c-text-light-2);
 
   --section-gap: 160px;
+
+  /* Upgrade table variables */
+  --upgrade-name-width: 45%;
+  --upgrade-table-padding: 0.3rem 0.4rem;
+  --upgrade-table-font-size: 0.85rem;
+  --upgrade-name-font-size: 0.85rem;
+  --upgrade-cell-font-size: 0.8rem;
+  --upgrade-value-font-size: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {

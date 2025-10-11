@@ -10,6 +10,7 @@ interface Props {
 interface Emits {
   (e: 'update:selectedClassMod', value: ClassMod): void
   (e: 'openMetaUpgrades'): void
+  (e: 'startNewDive'): void
 }
 
 const props = defineProps<Props>()
@@ -83,6 +84,12 @@ function selectModByName(event: Event) {
       </select>
     </div>
 
+    <div class="center-section">
+      <button @click="emit('startNewDive')" class="header-button new-dive-button">
+        Start New Dive
+      </button>
+    </div>
+
     <div class="right-section">
       <button @click="emit('openMetaUpgrades')" class="header-button">
         Meta Upgrades
@@ -104,10 +111,24 @@ function selectModByName(event: Event) {
 }
 
 .left-section,
+.center-section,
 .right-section {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  flex: 1;
+}
+
+.left-section {
+  justify-content: flex-start;
+}
+
+.center-section {
+  justify-content: center;
+}
+
+.right-section {
+  justify-content: flex-end;
 }
 
 .class-select,
@@ -138,5 +159,9 @@ function selectModByName(event: Event) {
 
 .header-button:hover {
   background: var(--color-background-mute);
+}
+
+.new-dive-button {
+  font-weight: 600;
 }
 </style>
