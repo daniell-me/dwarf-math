@@ -1,4 +1,4 @@
-import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade } from '@/data/types'
+import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade, Stat } from '@/data/types'
 import { getUpgradeValue } from '@/utils/weaponFunctions'
 
 export function calculateDPS(
@@ -199,4 +199,53 @@ export function calculateCurrentStats(
   }
 
   return currentStats
+}
+
+/**
+ * Calculate DPS with all mid-dive upgrades applied to the weapon.
+ * Uses the bucket system: Base × (1 + midDiveUpgrades) × characterStatMultipliers
+ *
+ * @param baseDmg - Base weapon damage
+ * @param fireRate - Base weapon fire rate
+ * @param reloadTime - Base weapon reload time
+ * @param clipSize - Weapon clip size
+ * @param characterStats - Character stats (includes meta upgrades, class mods, etc.)
+ * @param aggregatedUpgrades - Mid-dive upgrades aggregated by stat (additive bonuses)
+ * @returns The calculated DPS with all upgrades applied
+ */
+export function calculateDPSWithAllUpgrades(
+  baseDmg: number,
+  fireRate: number,
+  reloadTime: number,
+  clipSize: number,
+  characterStats: CharacterStats,
+  aggregatedUpgrades: Partial<Record<Stat, number>>
+): number {
+  // Apply mid-dive upgrade bucket (additive) to base stats
+  const midDiveDmgBonus = aggregatedUpgrades['dmg'] ?? 0
+  const midDiveFireRateBonus = aggregatedUpgrades['fireRate'] ?? 0
+  const midDiveReloadSpeedBonus = aggregatedUpgrades['reloadSpeed'] ?? 0
+
+  const dmgWithMidDive = baseDmg * (1 + midDiveDmgBonus)
+  const fireRateWithMidDive = fireRate * (1 + midDiveFireRateBonus)
+  // Reload speed bonus reduces reload time
+  const reloadTimeWithMidDive = reloadTime * (1 - midDiveReloadSpeedBonus)
+
+  // Apply character stat multipliers (includes meta upgrades, class mods, etc.)
+  const characterDamageMultiplier = characterStats.damage ?? 1.0
+  const characterReloadSpeedMultiplier = characterStats.reloadSpeed ?? 1.0
+
+  const finalDmg = dmgWithMidDive * characterDamageMultiplier
+  const finalFireRate = fireRateWithMidDive
+  const finalReloadTime = reloadTimeWithMidDive / characterReloadSpeedMultiplier
+
+  // Calculate final DPS with crit stats
+  return calculateDPS(
+    finalDmg,
+    finalFireRate,
+    finalReloadTime,
+    clipSize,
+    characterStats.critChance,
+    characterStats.critDamage
+  )
 }
