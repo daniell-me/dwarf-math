@@ -2,6 +2,7 @@
 import { useSelectedUpgradesStore } from '@/stores/selectedUpgrades'
 import type { Weapon, CharacterStats, Upgrade, Rarity } from '@/data/types'
 import { rarities } from '@/data/types'
+import { getUpgradeValue } from '@/utils/weaponFunctions'
 
 interface Props {
   upgrades: Upgrade[]
@@ -24,7 +25,7 @@ function formatStatName(stat: string): string {
 function handleCellClick(upgrade: Upgrade, rarity: Rarity, event: MouseEvent) {
   if (!props.weapon) return
 
-  const value = upgrade.values[rarity]
+  const value = getUpgradeValue(upgrade, rarity)
   if (value === undefined) return
 
   // Shift+click to remove one

@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import UpgradeTableV2 from './UpgradeTableV2.vue'
 import type { Weapon, Upgrade, CharacterStats } from '@/data/types'
 import { WeaponTag, Class, Stat, Rarity } from '@/data/types'
+import { getUpgradeValue } from '@/utils/weaponFunctions'
 
 const mockWeapon: Weapon = {
   id: 'test-weapon',
@@ -49,7 +50,7 @@ const mockCharacterStats: CharacterStats = {
 }
 
 const mockGetUpgradedDPS = (_weapon: Weapon, upgrade: Upgrade, rarity: Rarity): number | null => {
-  const value = upgrade.values[rarity]
+  const value = getUpgradeValue(upgrade, rarity)
   if (value === undefined) return null
   return 500 + value * 1000 // Mock calculation
 }

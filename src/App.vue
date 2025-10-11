@@ -108,9 +108,9 @@ body {
 
 /* App container styles */
 #app {
-  max-width: 1280px;
+  max-width: 85%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
   font-weight: normal;
 }
 
@@ -130,7 +130,7 @@ a,
 
 @media (min-width: 1024px) {
   #app {
-    padding: 0 2rem;
+    padding: 0 1rem;
   }
 }
 
