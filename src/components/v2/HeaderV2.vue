@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import type { ClassMod, Class } from '@/data/types'
+import { computed, watch } from 'vue'
+import type { ClassMod } from '@/data/types'
+import ClassSelectionModal from './ClassSelectionModal.vue'
 
 interface Props {
   classMods: ClassMod[]
   selectedClassMod: ClassMod | null
+  showClassModal: boolean
 }
 
 interface Emits {
   (e: 'update:selectedClassMod', value: ClassMod): void
+  (e: 'update:showClassModal', value: boolean): void
   (e: 'openMetaUpgrades'): void
   (e: 'startNewDive'): void
 }
@@ -16,76 +19,47 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// Initialize with first class mod on mount
-onMounted(() => {
-  if (!props.selectedClassMod && props.classMods.length > 0) {
-    emit('update:selectedClassMod', props.classMods[0])
+// Debug watcher
+watch(() => props.showClassModal, (newValue, oldValue) => {
+  console.log('HeaderV2: showClassModal prop changed from', oldValue, 'to', newValue)
+})
+
+const buttonText = computed(() => {
+  if (props.selectedClassMod) {
+    return `${props.selectedClassMod.class} - ${props.selectedClassMod.name}`
   }
+  return 'Select Class'
 })
 
-// Get unique classes
-const classes = computed(() => {
-  const uniqueClasses = new Set(props.classMods.map(mod => mod.class))
-  return Array.from(uniqueClasses)
-})
-
-// Get selected class
-const selectedClass = computed(() => props.selectedClassMod?.class || null)
-
-// Get class mods for selected class
-const availableMods = computed(() => {
-  if (!selectedClass.value) return []
-  return props.classMods.filter(mod => mod.class === selectedClass.value)
-})
-
-function selectClass(event: Event) {
-  const target = event.target as HTMLSelectElement
-  const className = target.value as Class
-  // Select the first mod for this class
-  const firstMod = props.classMods.find(mod => mod.class === className)
-  if (firstMod) {
-    emit('update:selectedClassMod', firstMod)
-  }
+function selectClassMod(mod: ClassMod) {
+  emit('update:selectedClassMod', mod)
 }
 
-function selectModByName(event: Event) {
-  const target = event.target as HTMLSelectElement
-  const modName = target.value
-  const mod = props.classMods.find(m => m.name === modName)
-  if (mod) {
-    emit('update:selectedClassMod', mod)
-  }
+function openClassModal() {
+  emit('update:showClassModal', true)
+}
+
+function closeClassModal() {
+  emit('update:showClassModal', false)
+}
+
+function handleStartNewDive() {
+  console.log('HeaderV2: handleStartNewDive called')
+  emit('startNewDive')
+  console.log('HeaderV2: startNewDive emitted')
 }
 </script>
 
 <template>
   <header class="header-v2">
     <div class="left-section">
-      <select
-        :value="selectedClass || ''"
-        @change="selectClass"
-        class="class-select"
-      >
-        <option v-for="className in classes" :key="className" :value="className">
-          {{ className }}
-        </option>
-      </select>
-
-      <select
-        v-if="selectedClass"
-        :value="selectedClassMod?.name || ''"
-        @change="selectModByName"
-        class="mod-select"
-      >
-        <option value="" disabled>Select class mod</option>
-        <option v-for="mod in availableMods" :key="mod.name" :value="mod.name">
-          {{ mod.name }}
-        </option>
-      </select>
+      <button @click="openClassModal" class="header-button class-button">
+        {{ buttonText }}
+      </button>
     </div>
 
     <div class="center-section">
-      <button @click="emit('startNewDive')" class="header-button new-dive-button">
+      <button @click="handleStartNewDive" class="header-button new-dive-button">
         Start New Dive
       </button>
     </div>
@@ -95,6 +69,13 @@ function selectModByName(event: Event) {
         Meta Upgrades
       </button>
     </div>
+
+    <ClassSelectionModal
+      v-if="showClassModal"
+      :class-mods="classMods"
+      @select="selectClassMod"
+      @close="closeClassModal"
+    />
   </header>
 </template>
 
@@ -131,22 +112,6 @@ function selectModByName(event: Event) {
   justify-content: flex-end;
 }
 
-.class-select,
-.mod-select {
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background: var(--color-background);
-  color: var(--color-text);
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.class-select:hover,
-.mod-select:hover {
-  border-color: var(--color-border-hover);
-}
-
 .header-button {
   padding: 0.4rem 0.8rem;
   border: 1px solid var(--color-border);
@@ -159,6 +124,11 @@ function selectModByName(event: Event) {
 
 .header-button:hover {
   background: var(--color-background-mute);
+}
+
+.class-button {
+  width: 250px;
+  text-align: left;
 }
 
 .new-dive-button {
