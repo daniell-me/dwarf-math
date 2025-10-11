@@ -7,7 +7,23 @@ export const Stat = {
   droneCount: 'droneCount',
   beamCount: 'beamCount',
   weaponLevel: 'weaponLevel',
-  statusPotency: 'statusPotency'
+  statusPotency: 'statusPotency',
+  explosionRadius: 'explosionRadius',
+  // Player stats
+  maxHealth: 'maxHealth',
+  armor: 'armor',
+  critChance: 'critChance',
+  critDamage: 'critDamage',
+  miningSpeed: 'miningSpeed',
+  moveSpeed: 'moveSpeed',
+  dodgeChance: 'dodgeChance',
+  pickupRadius: 'pickupRadius',
+  xpGain: 'xpGain',
+  reviveSpeed: 'reviveSpeed',
+  luck: 'luck',
+  statusDamage: 'statusDamage',
+  // Weapon lifetime
+  lifetime: 'lifetime'
 } as const
 
 export type Stat = typeof Stat[keyof typeof Stat]
@@ -27,8 +43,10 @@ export const WeaponTag = {
   throwable: 'throwable',
   turret: 'turret',
   light: 'light',
+  medium: 'medium',
   heavy: 'heavy',
-  construct: 'construct'
+  construct: 'construct',
+  lasting: 'lasting'
 } as const
 
 export type WeaponTag = typeof WeaponTag[keyof typeof WeaponTag]
@@ -72,11 +90,21 @@ export interface CharacterStats {
   statusDamage?: number
 }
 
+export const UpgradeCategory = {
+  weapon: 'weapon',     // Mid-dive upgrades that increase weapon level
+  tag: 'tag',          // Mid-dive upgrades that affect weapons but don't level them
+  player: 'player'     // Mid-dive upgrades for non-combat/utility stats
+} as const
+
+export type UpgradeCategory = typeof UpgradeCategory[keyof typeof UpgradeCategory]
+
 export interface Upgrade {
   name: string
   stat: Stat
   tags: WeaponTag[]
-  values: Partial<Record<Rarity, number>>
+  values: Partial<Record<Rarity, number>> | (number | null)[]  // Either old format or new array format [common, uncommon, rare, epic, legendary]
+  category?: UpgradeCategory  // Optional for backwards compatibility
+  description?: string
 }
 
 export const Class = {

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { weapons, weaponsMap } from '@/data/weapons'
-import { upgrades } from '@/data/upgrades'
+import { upgrades, tagUpgrades, playerUpgrades } from '@/data/upgrades'
 import { classMods } from '@/data/classMods'
 import { classBaseStats } from '@/data/classes'
 import { metaUpgrades } from '@/data/metaUpgrades'
 import type { Weapon, CharacterStats, ClassMod, Upgrade, Rarity } from '@/data/types'
 import { calculateCurrentStats, calculateDPSWithUpgrade, calculateDPS } from '@/services/calculations'
-import { getValidUpgradesForWeapon } from '@/utils/weaponFunctions'
+import { getValidUpgradesForWeapon, getUpgradeValue } from '@/utils/weaponFunctions'
 import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
 import HeaderV2 from '@/components/v2/HeaderV2.vue'
 import WeaponListV2 from '@/components/v2/WeaponListV2.vue'
@@ -83,7 +83,7 @@ function getValidUpgrades(weapon: Weapon): Upgrade[] {
 function getUpgradedDPS(weapon: Weapon, upgrade: Upgrade, rarity: Rarity): number | null {
   if (!characterStats.value) return null
 
-  const upgradeValue = upgrade.values[rarity]
+  const upgradeValue = getUpgradeValue(upgrade, rarity)
   if (upgradeValue === undefined) {
     return null
   }
@@ -154,7 +154,11 @@ function removeWeapon(index: number) {
 
       <div class="right-column">
         <h2>Global Upgrades</h2>
-        <GlobalUpgradesSectionV2 />
+        <GlobalUpgradesSectionV2
+          :tag-upgrades="tagUpgrades"
+          :player-upgrades="playerUpgrades"
+          :equipped-weapons="equippedWeapons"
+        />
       </div>
     </div>
 
@@ -202,14 +206,14 @@ function removeWeapon(index: number) {
 }
 
 .left-column {
-  flex: 7;
+  flex: 6;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
 }
 
 .right-column {
-  flex: 3;
+  flex: 4;
   display: flex;
   flex-direction: column;
   overflow-y: auto;

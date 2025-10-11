@@ -1,4 +1,5 @@
 import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade } from '@/data/types'
+import { getUpgradeValue } from '@/utils/weaponFunctions'
 
 export function calculateDPS(
   dmg: number,
@@ -32,7 +33,7 @@ export function calculateDPSWithUpgrade(
   characterDamageMultiplier: number = 1.0,
   characterReloadSpeedMultiplier: number = 1.0
 ): number {
-  const upgradeValue = upgrade.values[rarity]
+  const upgradeValue = getUpgradeValue(upgrade, rarity)
   if (upgradeValue === undefined) {
     throw new Error(`calculateDPSWithUpgrade: upgrade '${upgrade.name}' does not have a value for rarity '${rarity}'`)
   }

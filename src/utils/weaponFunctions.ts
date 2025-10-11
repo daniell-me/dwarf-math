@@ -1,5 +1,5 @@
-import type { Weapon, Upgrade, WeaponTag } from '@/data/types'
-import { WeaponTag as WeaponTagEnum } from '@/data/types'
+import type { Weapon, Upgrade, WeaponTag, Rarity } from '@/data/types'
+import { WeaponTag as WeaponTagEnum, rarities } from '@/data/types'
 
 export function getValidUpgradesForWeapon(weapon: Weapon, allUpgrades: Upgrade[]): Upgrade[] {
   return allUpgrades.filter(upgrade => {
@@ -11,6 +11,16 @@ export function getValidUpgradesForWeapon(weapon: Weapon, allUpgrades: Upgrade[]
     // Check if weapon and upgrade share any common tags
     return upgrade.tags.some(upgradeTag => weapon.tags.includes(upgradeTag))
   })
+}
+
+export function getUpgradeValue(upgrade: Upgrade, rarity: Rarity): number | undefined {
+  if (Array.isArray(upgrade.values)) {
+    const rarityIndex = rarities.indexOf(rarity)
+    const value = upgrade.values[rarityIndex]
+    return value === null ? undefined : value
+  }
+  // Backwards compatibility with old format
+  return upgrade.values[rarity]
 }
 
 export function findWeaponByName(weapons: Weapon[], name: string): Weapon {
