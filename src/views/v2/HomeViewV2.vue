@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { weapons, weaponsMap } from '@/data/weapons'
 import { weaponUpgrades, tagUpgrades, playerUpgrades } from '@/data/upgrades'
 import { classMods } from '@/data/classMods'
 import { classBaseStats } from '@/data/classes'
 import { metaUpgrades } from '@/data/metaUpgrades'
 import type { Weapon, CharacterStats, ClassMod, Upgrade, Rarity } from '@/data/types'
-import { calculateCurrentStats, calculateDPSWithUpgrade, calculateDPS } from '@/services/calculations'
+import { calculateCurrentStats, calculateDPSWithUpgrade, calculateDPS, calculateDPSWithAllUpgrades } from '@/services/calculations'
+import { aggregateMidDiveUpgrades } from '@/utils/upgradeAggregation'
+import { allUpgrades } from '@/data/upgrades'
 import { getValidUpgradesForWeapon, getUpgradeValue } from '@/utils/weaponFunctions'
 import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
 import { useSelectedUpgradesStore } from '@/stores/selectedUpgrades'
@@ -19,8 +21,65 @@ import SlideOutDrawerV2 from '@/components/v2/SlideOutDrawerV2.vue'
 import CharacterStatsPanelV2 from '@/components/v2/CharacterStatsPanelV2.vue'
 import SelectedUpgradesPanelV2 from '@/components/v2/SelectedUpgradesPanelV2.vue'
 
-const selectedClassMod = ref<ClassMod | null>(null)
-const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
+// Storage keys
+const CLASS_MOD_STORAGE_KEY = 'dwarf-math-selected-class-mod'
+const EQUIPPED_WEAPONS_STORAGE_KEY = 'dwarf-math-equipped-weapons'
+
+// Load functions
+function loadSelectedClassMod(): ClassMod | null {
+  try {
+    const stored = localStorage.getItem(CLASS_MOD_STORAGE_KEY)
+    if (stored) {
+      const data = JSON.parse(stored)
+      // Find the class mod by name to ensure we have the full object
+      return classMods.find(cm => cm.name === data.name) ?? null
+    }
+  } catch (e) {
+    console.error('Failed to load selected class mod from localStorage:', e)
+  }
+  return null
+}
+
+function loadEquippedWeapons(): (Weapon | null)[] {
+  try {
+    const stored = localStorage.getItem(EQUIPPED_WEAPONS_STORAGE_KEY)
+    if (stored) {
+      const weaponIds = JSON.parse(stored) as (string | null)[]
+      // Map weapon IDs back to full weapon objects
+      return weaponIds.map(id => id ? weaponsMap[id] ?? null : null)
+    }
+  } catch (e) {
+    console.error('Failed to load equipped weapons from localStorage:', e)
+  }
+  return [null, null, null, null]
+}
+
+// Save functions
+function saveSelectedClassMod(classMod: ClassMod | null): void {
+  try {
+    if (classMod) {
+      // Only store the name to avoid storing the full object
+      localStorage.setItem(CLASS_MOD_STORAGE_KEY, JSON.stringify({ name: classMod.name }))
+    } else {
+      localStorage.removeItem(CLASS_MOD_STORAGE_KEY)
+    }
+  } catch (e) {
+    console.error('Failed to save selected class mod to localStorage:', e)
+  }
+}
+
+function saveEquippedWeapons(weapons: (Weapon | null)[]): void {
+  try {
+    // Only store weapon IDs to avoid storing full objects
+    const weaponIds = weapons.map(w => w?.id ?? null)
+    localStorage.setItem(EQUIPPED_WEAPONS_STORAGE_KEY, JSON.stringify(weaponIds))
+  } catch (e) {
+    console.error('Failed to save equipped weapons to localStorage:', e)
+  }
+}
+
+const selectedClassMod = ref<ClassMod | null>(loadSelectedClassMod())
+const equippedWeapons = ref<(Weapon | null)[]>(loadEquippedWeapons())
 const metaUpgradesStore = useMetaUpgradesStore()
 const selectedUpgradesStore = useSelectedUpgradesStore()
 const globalUpgradesStore = useGlobalUpgradesStore()
@@ -33,10 +92,14 @@ const showClassModal = ref(false)
 const flatGearBonuses = ref<Partial<CharacterStats>>({})
 const percentGearBonuses = ref<Partial<CharacterStats>>({})
 
-// Debug watcher
-watch(showClassModal, (newValue, oldValue) => {
-  console.log('showClassModal changed from', oldValue, 'to', newValue)
+// Watchers for persistence
+watch(selectedClassMod, (newValue) => {
+  saveSelectedClassMod(newValue)
 })
+
+watch(equippedWeapons, (newValue) => {
+  saveEquippedWeapons(newValue)
+}, { deep: true })
 
 // Calculate current character stats based on class, class mod, meta upgrades, and gear
 const characterStats = computed<CharacterStats | null>(() => {
@@ -99,36 +162,52 @@ function getUpgradedDPS(weapon: Weapon, upgrade: Upgrade, rarity: Rarity): numbe
   if (upgradeValue === undefined) {
     return null
   }
-  return calculateDPSWithUpgrade(
+
+  // Aggregate all current mid-dive upgrades for this weapon
+  const aggregatedUpgrades = aggregateMidDiveUpgrades(
+    weapon.id,
+    weapon,
+    selectedUpgradesStore.selectedUpgrades,
+    globalUpgradesStore.upgrades,
+    allUpgrades
+  )
+
+  // Add one more instance of this upgrade to the aggregated totals
+  const aggregatedWithOneMore = { ...aggregatedUpgrades }
+  const currentValue = aggregatedWithOneMore[upgrade.stat] ?? 0
+  aggregatedWithOneMore[upgrade.stat] = currentValue + upgradeValue
+
+  // Calculate DPS with the additional upgrade
+  return calculateDPSWithAllUpgrades(
     weapon.baseDmg,
     weapon.fireRate,
     weapon.reloadTime,
     weapon.clipSize,
-    characterStats.value.critChance,
-    characterStats.value.critDamage,
-    upgrade,
-    rarity,
-    characterStats.value.damage ?? 1.0,
-    characterStats.value.reloadSpeed ?? 1.0
+    characterStats.value,
+    aggregatedWithOneMore
   )
 }
 
 function getCurrentDPS(weapon: Weapon): number {
   if (!characterStats.value) return 0
 
-  const damageMultiplier = characterStats.value.damage ?? 1.0
-  const reloadSpeedMultiplier = characterStats.value.reloadSpeed ?? 1.0
+  // Aggregate all mid-dive upgrades for this weapon
+  const aggregatedUpgrades = aggregateMidDiveUpgrades(
+    weapon.id,
+    weapon,
+    selectedUpgradesStore.selectedUpgrades,
+    globalUpgradesStore.upgrades,
+    allUpgrades
+  )
 
-  const modifiedDamage = weapon.baseDmg * damageMultiplier
-  const modifiedReloadTime = weapon.reloadTime / reloadSpeedMultiplier
-
-  return calculateDPS(
-    modifiedDamage,
+  // Calculate DPS with all upgrades applied
+  return calculateDPSWithAllUpgrades(
+    weapon.baseDmg,
     weapon.fireRate,
-    modifiedReloadTime,
+    weapon.reloadTime,
     weapon.clipSize,
-    characterStats.value.critChance,
-    characterStats.value.critDamage
+    characterStats.value,
+    aggregatedUpgrades
   )
 }
 
