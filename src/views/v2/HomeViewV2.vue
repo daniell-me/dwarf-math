@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { weapons, weaponsMap } from '@/data/weapons'
 import { weaponUpgrades, tagUpgrades, playerUpgrades } from '@/data/upgrades'
 import { classMods } from '@/data/classMods'
@@ -27,10 +27,16 @@ const globalUpgradesStore = useGlobalUpgradesStore()
 const showMetaUpgrades = ref(false)
 const showStatsDrawer = ref(false)
 const showBuildDrawer = ref(false)
+const showClassModal = ref(false)
 
 // TODO: Add UI for gear bonuses
 const flatGearBonuses = ref<Partial<CharacterStats>>({})
 const percentGearBonuses = ref<Partial<CharacterStats>>({})
+
+// Debug watcher
+watch(showClassModal, (newValue, oldValue) => {
+  console.log('showClassModal changed from', oldValue, 'to', newValue)
+})
 
 // Calculate current character stats based on class, class mod, meta upgrades, and gear
 const characterStats = computed<CharacterStats | null>(() => {
@@ -53,6 +59,8 @@ function handleClassModChange(classMod: ClassMod) {
   // Initialize with starting weapon
   const startingWeapon = weaponsMap[classMod.startingWeaponId]
   equippedWeapons.value = [startingWeapon, null, null, null]
+  // Close the modal after selection
+  showClassModal.value = false
 }
 
 function getAvailableWeapons(currentIndex: number): Weapon[] {
@@ -133,6 +141,9 @@ function removeWeapon(index: number) {
 }
 
 function handleStartNewDive() {
+  console.log('handleStartNewDive called')
+  console.log('showClassModal before:', showClassModal.value)
+
   // Clear class selection
   selectedClassMod.value = null
 
@@ -140,8 +151,12 @@ function handleStartNewDive() {
   equippedWeapons.value = [null, null, null, null]
 
   // Clear upgrade stores (but NOT meta upgrades)
-  selectedUpgradesStore.$reset()
-  globalUpgradesStore.$reset()
+  selectedUpgradesStore.clearAll()
+  globalUpgradesStore.resetAll()
+
+  // Open class selection modal
+  showClassModal.value = true
+  console.log('showClassModal after:', showClassModal.value)
 }
 </script>
 
@@ -150,7 +165,9 @@ function handleStartNewDive() {
     <HeaderV2
       :class-mods="classMods"
       :selected-class-mod="selectedClassMod"
+      :show-class-modal="showClassModal"
       @update:selected-class-mod="handleClassModChange"
+      @update:show-class-modal="showClassModal = $event"
       @open-meta-upgrades="showMetaUpgrades = true"
       @start-new-dive="handleStartNewDive"
     />
