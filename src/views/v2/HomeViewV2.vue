@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { weapons, weaponsMap } from '@/data/weapons'
-import { upgrades, tagUpgrades, playerUpgrades } from '@/data/upgrades'
+import { weaponUpgrades, tagUpgrades, playerUpgrades } from '@/data/upgrades'
 import { classMods } from '@/data/classMods'
 import { classBaseStats } from '@/data/classes'
 import { metaUpgrades } from '@/data/metaUpgrades'
@@ -9,6 +9,8 @@ import type { Weapon, CharacterStats, ClassMod, Upgrade, Rarity } from '@/data/t
 import { calculateCurrentStats, calculateDPSWithUpgrade, calculateDPS } from '@/services/calculations'
 import { getValidUpgradesForWeapon, getUpgradeValue } from '@/utils/weaponFunctions'
 import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
+import { useSelectedUpgradesStore } from '@/stores/selectedUpgrades'
+import { useGlobalUpgradesStore } from '@/stores/globalUpgrades'
 import HeaderV2 from '@/components/v2/HeaderV2.vue'
 import WeaponListV2 from '@/components/v2/WeaponListV2.vue'
 import GlobalUpgradesSectionV2 from '@/components/v2/GlobalUpgradesSectionV2.vue'
@@ -20,6 +22,8 @@ import SelectedUpgradesPanelV2 from '@/components/v2/SelectedUpgradesPanelV2.vue
 const selectedClassMod = ref<ClassMod | null>(null)
 const equippedWeapons = ref<(Weapon | null)[]>([null, null, null, null])
 const metaUpgradesStore = useMetaUpgradesStore()
+const selectedUpgradesStore = useSelectedUpgradesStore()
+const globalUpgradesStore = useGlobalUpgradesStore()
 const showMetaUpgrades = ref(false)
 const showStatsDrawer = ref(false)
 const showBuildDrawer = ref(false)
@@ -77,7 +81,7 @@ function getAvailableWeapons(currentIndex: number): Weapon[] {
 }
 
 function getValidUpgrades(weapon: Weapon): Upgrade[] {
-  return getValidUpgradesForWeapon(weapon, upgrades)
+  return getValidUpgradesForWeapon(weapon, weaponUpgrades)
 }
 
 function getUpgradedDPS(weapon: Weapon, upgrade: Upgrade, rarity: Rarity): number | null {
@@ -127,6 +131,18 @@ function setWeapon(index: number, weapon: Weapon) {
 function removeWeapon(index: number) {
   equippedWeapons.value[index] = null
 }
+
+function handleStartNewDive() {
+  // Clear class selection
+  selectedClassMod.value = null
+
+  // Clear equipped weapons
+  equippedWeapons.value = [null, null, null, null]
+
+  // Clear upgrade stores (but NOT meta upgrades)
+  selectedUpgradesStore.$reset()
+  globalUpgradesStore.$reset()
+}
 </script>
 
 <template>
@@ -136,6 +152,7 @@ function removeWeapon(index: number) {
       :selected-class-mod="selectedClassMod"
       @update:selected-class-mod="handleClassModChange"
       @open-meta-upgrades="showMetaUpgrades = true"
+      @start-new-dive="handleStartNewDive"
     />
 
     <div v-if="selectedClassMod" class="main-layout">
@@ -153,7 +170,6 @@ function removeWeapon(index: number) {
       </div>
 
       <div class="right-column">
-        <h2>Global Upgrades</h2>
         <GlobalUpgradesSectionV2
           :tag-upgrades="tagUpgrades"
           :player-upgrades="playerUpgrades"

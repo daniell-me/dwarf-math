@@ -12,6 +12,16 @@ const props = defineProps<Props>()
 const globalUpgradesStore = useGlobalUpgradesStore()
 
 function formatStatName(stat: string): string {
+  // Special case mappings for abbreviations
+  const specialCases: Record<string, string> = {
+    dmg: 'Damage',
+    xpGain: 'XP Gain'
+  }
+
+  if (specialCases[stat]) {
+    return specialCases[stat]
+  }
+
   // Convert camelCase to Title Case with spaces
   return stat
     .replace(/([A-Z])/g, ' $1')
@@ -48,6 +58,11 @@ function handleCellClick(upgrade: Upgrade, rarity: Rarity, event: MouseEvent) {
   const value = getUpgradeValue(upgrade, rarity)
   if (value === null || value === undefined) return
 
+  // Add pulse animation
+  const target = event.currentTarget as HTMLElement
+  target.classList.add('pulse')
+  setTimeout(() => target.classList.remove('pulse'), 300)
+
   // Shift+click to remove one
   if (event.shiftKey) {
     globalUpgradesStore.removeOneUpgrade(upgrade.name, upgrade.tags, rarity)
@@ -57,13 +72,15 @@ function handleCellClick(upgrade: Upgrade, rarity: Rarity, event: MouseEvent) {
   }
 }
 
-function getUpgradeCount(upgrade: Upgrade, rarity: Rarity): number {
-  return globalUpgradesStore.getUpgradeCount(upgrade.name, upgrade.tags, rarity)
-}
-
 function getUpgradeKey(upgrade: Upgrade): string {
   return upgrade.tags && upgrade.tags.length > 0
     ? `${upgrade.name}-${upgrade.tags.join(',')}`
+    : upgrade.name
+}
+
+function getUpgradeTooltip(upgrade: Upgrade): string {
+  return upgrade.description
+    ? `${upgrade.name} - ${upgrade.description}`
     : upgrade.name
 }
 </script>
@@ -72,33 +89,27 @@ function getUpgradeKey(upgrade: Upgrade): string {
   <div class="global-upgrade-table">
     <!-- Tag Upgrades Section -->
     <div v-if="tagUpgrades.length > 0" class="upgrade-section">
-      <div class="section-header">
-        <div class="section-title-wrapper">
-          <h3 class="section-title">Tag Upgrades</h3>
-        </div>
-        <div class="rarity-headers-wrapper">
-          <table class="rarity-headers-table">
-            <thead>
-              <tr>
-                <th class="upgrade-name-spacer">Upgrade</th>
-                <th
-                  v-for="rarity in rarities"
-                  :key="rarity"
-                  class="rarity-header"
-                  :class="`rarity-${rarity}`"
-                >
-                  {{ rarity.charAt(0).toUpperCase() + rarity.slice(1) }}
-                </th>
-              </tr>
-            </thead>
-          </table>
-        </div>
-      </div>
+      <h3 class="section-title">Tag Upgrades</h3>
+      <table class="rarity-headers-table">
+        <thead>
+          <tr>
+            <th class="upgrade-name-spacer">Upgrade</th>
+            <th
+              v-for="rarity in rarities"
+              :key="rarity"
+              class="rarity-header"
+              :class="`rarity-${rarity}`"
+            >
+              {{ rarity.charAt(0).toUpperCase() + rarity.slice(1) }}
+            </th>
+          </tr>
+        </thead>
+      </table>
       <table class="upgrade-table">
         <tbody>
           <tr v-for="upgrade in tagUpgrades" :key="getUpgradeKey(upgrade)">
-            <td class="upgrade-name" :title="upgrade.description">
-              {{ upgrade.name }}
+            <td class="upgrade-name" :title="getUpgradeTooltip(upgrade)">
+              {{ formatStatName(upgrade.stat) }}
               <span v-if="upgrade.tags && upgrade.tags.length > 0 && !upgrade.tags.includes('all')" class="tag-badge">
                 {{ upgrade.tags[0].toUpperCase() }}
               </span>
@@ -107,13 +118,10 @@ function getUpgradeKey(upgrade: Upgrade): string {
               v-for="rarity in rarities"
               :key="rarity"
               class="upgrade-cell"
-              :class="{ selected: getUpgradeCount(upgrade, rarity) > 0, disabled: getUpgradeValue(upgrade, rarity) === null }"
+              :class="{ disabled: getUpgradeValue(upgrade, rarity) === null }"
               @click="handleCellClick(upgrade, rarity, $event)"
             >
               <span class="upgrade-value">{{ formatUpgradeValue(upgrade, rarity) }}</span>
-              <span v-if="getUpgradeCount(upgrade, rarity) > 0" class="count-badge">
-                {{ getUpgradeCount(upgrade, rarity) }}
-              </span>
             </td>
           </tr>
         </tbody>
@@ -122,45 +130,36 @@ function getUpgradeKey(upgrade: Upgrade): string {
 
     <!-- Player Upgrades Section -->
     <div v-if="playerUpgrades.length > 0" class="upgrade-section">
-      <div class="section-header">
-        <div class="section-title-wrapper">
-          <h3 class="section-title">Player Upgrades</h3>
-        </div>
-        <div class="rarity-headers-wrapper">
-          <table class="rarity-headers-table">
-            <thead>
-              <tr>
-                <th class="upgrade-name-spacer">Upgrade</th>
-                <th
-                  v-for="rarity in rarities"
-                  :key="rarity"
-                  class="rarity-header"
-                  :class="`rarity-${rarity}`"
-                >
-                  {{ rarity.charAt(0).toUpperCase() + rarity.slice(1) }}
-                </th>
-              </tr>
-            </thead>
-          </table>
-        </div>
-      </div>
+      <h3 class="section-title">Player Upgrades</h3>
+      <table class="rarity-headers-table">
+        <thead>
+          <tr>
+            <th class="upgrade-name-spacer">Upgrade</th>
+            <th
+              v-for="rarity in rarities"
+              :key="rarity"
+              class="rarity-header"
+              :class="`rarity-${rarity}`"
+            >
+              {{ rarity.charAt(0).toUpperCase() + rarity.slice(1) }}
+            </th>
+          </tr>
+        </thead>
+      </table>
       <table class="upgrade-table">
         <tbody>
           <tr v-for="upgrade in playerUpgrades" :key="getUpgradeKey(upgrade)">
-            <td class="upgrade-name" :title="upgrade.description">
-              {{ upgrade.name }}
+            <td class="upgrade-name" :title="getUpgradeTooltip(upgrade)">
+              {{ formatStatName(upgrade.stat) }}
             </td>
             <td
               v-for="rarity in rarities"
               :key="rarity"
               class="upgrade-cell"
-              :class="{ selected: getUpgradeCount(upgrade, rarity) > 0, disabled: getUpgradeValue(upgrade, rarity) === null }"
+              :class="{ disabled: getUpgradeValue(upgrade, rarity) === null }"
               @click="handleCellClick(upgrade, rarity, $event)"
             >
               <span class="upgrade-value">{{ formatUpgradeValue(upgrade, rarity) }}</span>
-              <span v-if="getUpgradeCount(upgrade, rarity) > 0" class="count-badge">
-                {{ getUpgradeCount(upgrade, rarity) }}
-              </span>
             </td>
           </tr>
         </tbody>
@@ -174,57 +173,45 @@ function getUpgradeKey(upgrade: Upgrade): string {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.5rem;
 }
 
 .upgrade-section {
   display: flex;
   flex-direction: column;
   gap: 0;
-}
-
-.section-header {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0;
-}
-
-.section-title-wrapper {
-  width: 150px;
-  flex-shrink: 0;
+  margin-bottom: 0.5rem;
 }
 
 .section-title {
-  margin: 0;
+  margin: 0 0 0.25rem 0;
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-text);
-}
-
-.rarity-headers-wrapper {
-  flex: 1;
 }
 
 .rarity-headers-table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 0.85rem;
+  font-size: var(--upgrade-table-font-size);
 }
 
 .rarity-headers-table th {
-  padding: 0.3rem 0.4rem;
+  padding: var(--upgrade-table-padding);
   border: 1px solid var(--color-border);
   text-align: center;
 }
 
 .upgrade-name-spacer {
   text-align: left !important;
-  font-size: 0.8rem;
+  font-size: var(--upgrade-cell-font-size);
   font-weight: 600;
   background: var(--color-background-soft);
-  width: 45%;
+  width: var(--upgrade-name-width);
   white-space: nowrap;
+  min-width: var(--upgrade-name-width);
+  max-width: var(--upgrade-name-width);
 }
 
 .rarity-header {
@@ -232,7 +219,7 @@ function getUpgradeKey(upgrade: Upgrade): string {
   font-weight: 600;
   text-transform: uppercase;
   text-align: center;
-  width: 11%;
+  width: calc((100% - var(--upgrade-name-width)) / 5);
 }
 
 .rarity-common {
@@ -264,11 +251,11 @@ function getUpgradeKey(upgrade: Upgrade): string {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  font-size: 0.85rem;
+  font-size: var(--upgrade-table-font-size);
 }
 
 .upgrade-table td {
-  padding: 0.3rem 0.4rem;
+  padding: var(--upgrade-table-padding);
   border: 1px solid var(--color-border);
   text-align: center;
 }
@@ -276,12 +263,12 @@ function getUpgradeKey(upgrade: Upgrade): string {
 .upgrade-name {
   text-align: left !important;
   font-weight: 500;
-  font-size: 0.85rem;
+  font-size: var(--upgrade-name-font-size);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: help;
-  width: 45%;
+  width: var(--upgrade-name-width);
 }
 
 .tag-badge {
@@ -301,22 +288,12 @@ function getUpgradeKey(upgrade: Upgrade): string {
   background: var(--color-background);
   cursor: pointer;
   transition: background-color 0.2s;
-  font-size: 0.8rem;
-  position: relative;
-  width: 11%;
+  font-size: var(--upgrade-cell-font-size);
+  width: calc((100% - var(--upgrade-name-width)) / 5);
 }
 
 .upgrade-cell:hover:not(.disabled) {
   background: var(--color-background-soft);
-}
-
-.upgrade-cell.selected {
-  background: var(--vt-c-green-soft);
-  font-weight: 600;
-}
-
-.upgrade-cell.selected:hover {
-  background: var(--vt-c-green-mute);
 }
 
 .upgrade-cell.disabled {
@@ -327,22 +304,25 @@ function getUpgradeKey(upgrade: Upgrade): string {
 }
 
 .upgrade-value {
-  font-size: 0.75rem;
+  font-size: var(--upgrade-value-font-size);
 }
 
-.count-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: bold;
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    background: var(--color-background-soft);
+  }
+  50% {
+    transform: scale(1.05);
+    background: var(--vt-c-green-soft);
+  }
+  100% {
+    transform: scale(1);
+    background: var(--color-background);
+  }
+}
+
+.upgrade-cell.pulse {
+  animation: pulse 0.3s ease-out;
 }
 </style>
