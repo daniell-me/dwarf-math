@@ -17,6 +17,7 @@ import HeaderV2 from '@/components/v2/HeaderV2.vue'
 import WeaponListV2 from '@/components/v2/WeaponListV2.vue'
 import GlobalUpgradesSectionV2 from '@/components/v2/GlobalUpgradesSectionV2.vue'
 import MetaUpgradesPanelV2 from '@/components/v2/MetaUpgradesPanelV2.vue'
+import GearModalV2 from '@/components/v2/GearModalV2.vue'
 import SlideOutDrawerV2 from '@/components/v2/SlideOutDrawerV2.vue'
 import CharacterStatsPanelV2 from '@/components/v2/CharacterStatsPanelV2.vue'
 import SelectedUpgradesPanelV2 from '@/components/v2/SelectedUpgradesPanelV2.vue'
@@ -24,6 +25,8 @@ import SelectedUpgradesPanelV2 from '@/components/v2/SelectedUpgradesPanelV2.vue
 // Storage keys
 const CLASS_MOD_STORAGE_KEY = 'dwarf-math-selected-class-mod'
 const EQUIPPED_WEAPONS_STORAGE_KEY = 'dwarf-math-equipped-weapons'
+const FLAT_GEAR_BONUSES_STORAGE_KEY = 'dwarf-math-flat-gear-bonuses'
+const PERCENT_GEAR_BONUSES_STORAGE_KEY = 'dwarf-math-percent-gear-bonuses'
 
 // Load functions
 function loadSelectedClassMod(): ClassMod | null {
@@ -78,19 +81,40 @@ function saveEquippedWeapons(weapons: (Weapon | null)[]): void {
   }
 }
 
+function loadGearBonuses(key: string): Partial<CharacterStats> {
+  try {
+    const stored = localStorage.getItem(key)
+    if (stored) {
+      return JSON.parse(stored)
+    }
+  } catch (e) {
+    console.error(`Failed to load gear bonuses from localStorage (${key}):`, e)
+  }
+  return {}
+}
+
+function saveGearBonuses(key: string, bonuses: Partial<CharacterStats>): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(bonuses))
+  } catch (e) {
+    console.error(`Failed to save gear bonuses to localStorage (${key}):`, e)
+  }
+}
+
 const selectedClassMod = ref<ClassMod | null>(loadSelectedClassMod())
 const equippedWeapons = ref<(Weapon | null)[]>(loadEquippedWeapons())
 const metaUpgradesStore = useMetaUpgradesStore()
 const selectedUpgradesStore = useSelectedUpgradesStore()
 const globalUpgradesStore = useGlobalUpgradesStore()
 const showMetaUpgrades = ref(false)
+const showGear = ref(false)
 const showStatsDrawer = ref(false)
 const showBuildDrawer = ref(false)
 const showClassModal = ref(false)
 
-// TODO: Add UI for gear bonuses
-const flatGearBonuses = ref<Partial<CharacterStats>>({})
-const percentGearBonuses = ref<Partial<CharacterStats>>({})
+// Gear bonuses
+const flatGearBonuses = ref<Partial<CharacterStats>>(loadGearBonuses(FLAT_GEAR_BONUSES_STORAGE_KEY))
+const percentGearBonuses = ref<Partial<CharacterStats>>(loadGearBonuses(PERCENT_GEAR_BONUSES_STORAGE_KEY))
 
 // Watchers for persistence
 watch(selectedClassMod, (newValue) => {
@@ -119,9 +143,15 @@ const characterStats = computed<CharacterStats | null>(() => {
 
 function handleClassModChange(classMod: ClassMod) {
   selectedClassMod.value = classMod
-  // Initialize with starting weapon
-  const startingWeapon = weaponsMap[classMod.startingWeaponId]
-  equippedWeapons.value = [startingWeapon, null, null, null]
+
+  // Only initialize with starting weapon if no weapons are equipped
+  // (allows restoration from localStorage to work)
+  const hasEquippedWeapons = equippedWeapons.value.some(w => w !== null)
+  if (!hasEquippedWeapons) {
+    const startingWeapon = weaponsMap[classMod.startingWeaponId]
+    equippedWeapons.value = [startingWeapon, null, null, null]
+  }
+
   // Close the modal after selection
   showClassModal.value = false
 }
@@ -219,14 +249,18 @@ function removeWeapon(index: number) {
   equippedWeapons.value[index] = null
 }
 
-function handleStartNewDive() {
-  console.log('handleStartNewDive called')
-  console.log('showClassModal before:', showClassModal.value)
+function handleGearUpdate(flat: Partial<CharacterStats>, percent: Partial<CharacterStats>) {
+  flatGearBonuses.value = flat
+  percentGearBonuses.value = percent
+  saveGearBonuses(FLAT_GEAR_BONUSES_STORAGE_KEY, flat)
+  saveGearBonuses(PERCENT_GEAR_BONUSES_STORAGE_KEY, percent)
+}
 
-  // Clear class selection
+function handleStartNewDive() {
+  // Clear class selection (watcher will handle localStorage)
   selectedClassMod.value = null
 
-  // Clear equipped weapons
+  // Clear equipped weapons (watcher will handle localStorage)
   equippedWeapons.value = [null, null, null, null]
 
   // Clear upgrade stores (but NOT meta upgrades)
@@ -235,7 +269,6 @@ function handleStartNewDive() {
 
   // Open class selection modal
   showClassModal.value = true
-  console.log('showClassModal after:', showClassModal.value)
 }
 </script>
 
@@ -248,6 +281,7 @@ function handleStartNewDive() {
       @update:selected-class-mod="handleClassModChange"
       @update:show-class-modal="showClassModal = $event"
       @open-meta-upgrades="showMetaUpgrades = true"
+      @open-gear="showGear = true"
       @start-new-dive="handleStartNewDive"
     />
 
@@ -279,6 +313,13 @@ function handleStartNewDive() {
     </div>
 
     <MetaUpgradesPanelV2 v-if="showMetaUpgrades" @close="showMetaUpgrades = false" />
+    <GearModalV2
+      v-if="showGear"
+      :flat-bonuses="flatGearBonuses"
+      :percent-bonuses="percentGearBonuses"
+      @update="handleGearUpdate"
+      @close="showGear = false"
+    />
 
     <!-- Floating buttons on left side -->
     <div class="floating-buttons">

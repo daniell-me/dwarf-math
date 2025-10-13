@@ -13,6 +13,7 @@ interface Emits {
   (e: 'update:selectedClassMod', value: ClassMod): void
   (e: 'update:showClassModal', value: boolean): void
   (e: 'openMetaUpgrades'): void
+  (e: 'openGear'): void
   (e: 'startNewDive'): void
 }
 
@@ -65,6 +66,9 @@ function handleStartNewDive() {
     </div>
 
     <div class="right-section">
+      <button @click="emit('openGear')" class="header-button">
+        Gear
+      </button>
       <button @click="emit('openMetaUpgrades')" class="header-button">
         Meta Upgrades
       </button>
