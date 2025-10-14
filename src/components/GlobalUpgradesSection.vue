@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Upgrade, Weapon, WeaponTag } from '@/data/types'
-import GlobalUpgradeTableV2 from './GlobalUpgradeTableV2.vue'
+import GlobalUpgradeTable from './GlobalUpgradeTable.vue'
 
 interface Props {
   tagUpgrades: Upgrade[]
@@ -35,7 +35,7 @@ const visibleTagUpgrades = computed<Upgrade[]>(() => {
 
 <template>
   <div class="global-upgrades-section">
-    <GlobalUpgradeTableV2
+    <GlobalUpgradeTable
       v-if="visibleTagUpgrades.length > 0 || playerUpgrades.length > 0"
       :tag-upgrades="visibleTagUpgrades"
       :player-upgrades="playerUpgrades"

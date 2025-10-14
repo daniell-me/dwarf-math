@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import EmptyWeaponSlotV2 from './EmptyWeaponSlotV2.vue'
+import EmptyWeaponSlot from './EmptyWeaponSlot.vue'
 import type { Weapon } from '@/data/types'
 import { WeaponTag, Class } from '@/data/types'
 
@@ -27,9 +27,9 @@ const mockWeapons: Weapon[] = [
   }
 ]
 
-describe('EmptyWeaponSlotV2', () => {
+describe('EmptyWeaponSlot', () => {
   it('should render the component', () => {
-    const wrapper = mount(EmptyWeaponSlotV2, {
+    const wrapper = mount(EmptyWeaponSlot, {
       props: {
         slotIndex: 0,
         availableWeapons: mockWeapons
@@ -39,7 +39,7 @@ describe('EmptyWeaponSlotV2', () => {
   })
 
   it('should display correct slot number', () => {
-    const wrapper = mount(EmptyWeaponSlotV2, {
+    const wrapper = mount(EmptyWeaponSlot, {
       props: {
         slotIndex: 2,
         availableWeapons: mockWeapons
@@ -49,7 +49,7 @@ describe('EmptyWeaponSlotV2', () => {
   })
 
   it('should render select element with available weapons', () => {
-    const wrapper = mount(EmptyWeaponSlotV2, {
+    const wrapper = mount(EmptyWeaponSlot, {
       props: {
         slotIndex: 0,
         availableWeapons: mockWeapons
@@ -68,7 +68,7 @@ describe('EmptyWeaponSlotV2', () => {
   })
 
   it('should emit selectWeapon event when weapon is selected', async () => {
-    const wrapper = mount(EmptyWeaponSlotV2, {
+    const wrapper = mount(EmptyWeaponSlot, {
       props: {
         slotIndex: 0,
         availableWeapons: mockWeapons
@@ -84,7 +84,7 @@ describe('EmptyWeaponSlotV2', () => {
   })
 
   it('should not emit event when default option is selected', async () => {
-    const wrapper = mount(EmptyWeaponSlotV2, {
+    const wrapper = mount(EmptyWeaponSlot, {
       props: {
         slotIndex: 0,
         availableWeapons: mockWeapons
@@ -98,7 +98,7 @@ describe('EmptyWeaponSlotV2', () => {
   })
 
   it('should display empty slot when no weapons available', () => {
-    const wrapper = mount(EmptyWeaponSlotV2, {
+    const wrapper = mount(EmptyWeaponSlot, {
       props: {
         slotIndex: 0,
         availableWeapons: []

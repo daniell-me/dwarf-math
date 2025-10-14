@@ -1,28 +1,28 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import RarityHeaderV2 from './RarityHeaderV2.vue'
+import RarityHeader from './RarityHeader.vue'
 import { rarities } from '@/data/types'
 
-describe('RarityHeaderV2', () => {
+describe('RarityHeader', () => {
   it('should render the component', () => {
-    const wrapper = mount(RarityHeaderV2)
+    const wrapper = mount(RarityHeader)
     expect(wrapper.exists()).toBe(true)
   })
 
   it('should display "Weapon Upgrades" title', () => {
-    const wrapper = mount(RarityHeaderV2)
+    const wrapper = mount(RarityHeader)
     expect(wrapper.find('h2').text()).toBe('Weapon Upgrades')
   })
 
   it('should display "Upgrade" column header', () => {
-    const wrapper = mount(RarityHeaderV2)
+    const wrapper = mount(RarityHeader)
     const upgradeHeader = wrapper.find('.upgrade-name-spacer')
     expect(upgradeHeader.exists()).toBe(true)
     expect(upgradeHeader.text()).toBe('Upgrade')
   })
 
   it('should display all rarity headers in correct order', () => {
-    const wrapper = mount(RarityHeaderV2)
+    const wrapper = mount(RarityHeader)
     const rarityHeaders = wrapper.findAll('.rarity-header')
 
     expect(rarityHeaders.length).toBe(rarities.length)
@@ -34,7 +34,7 @@ describe('RarityHeaderV2', () => {
   })
 
   it('should apply correct CSS classes to rarity headers', () => {
-    const wrapper = mount(RarityHeaderV2)
+    const wrapper = mount(RarityHeader)
 
     rarities.forEach((rarity) => {
       const header = wrapper.find(`.rarity-${rarity}`)
@@ -45,7 +45,7 @@ describe('RarityHeaderV2', () => {
   })
 
   it('should have table with correct structure', () => {
-    const wrapper = mount(RarityHeaderV2)
+    const wrapper = mount(RarityHeader)
     const table = wrapper.find('table')
 
     expect(table.exists()).toBe(true)

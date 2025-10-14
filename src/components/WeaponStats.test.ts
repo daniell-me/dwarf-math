@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import WeaponStatsV2 from './WeaponStatsV2.vue'
+import WeaponStats from './WeaponStats.vue'
 import type { Weapon } from '@/data/types'
 import { WeaponTag, Class } from '@/data/types'
 
@@ -15,9 +15,9 @@ const mockWeapon: Weapon = {
   tags: [WeaponTag.all]
 }
 
-describe('WeaponStatsV2', () => {
+describe('WeaponStats', () => {
   it('should render the component', () => {
-    const wrapper = mount(WeaponStatsV2, {
+    const wrapper = mount(WeaponStats, {
       props: {
         weapon: mockWeapon,
         currentDPS: 450.5
@@ -27,7 +27,7 @@ describe('WeaponStatsV2', () => {
   })
 
   it('should display weapon name', () => {
-    const wrapper = mount(WeaponStatsV2, {
+    const wrapper = mount(WeaponStats, {
       props: {
         weapon: mockWeapon,
         currentDPS: 450.5
@@ -37,7 +37,7 @@ describe('WeaponStatsV2', () => {
   })
 
   it('should display current DPS with one decimal place', () => {
-    const wrapper = mount(WeaponStatsV2, {
+    const wrapper = mount(WeaponStats, {
       props: {
         weapon: mockWeapon,
         currentDPS: 450.567
@@ -48,7 +48,7 @@ describe('WeaponStatsV2', () => {
   })
 
   it('should display all base stats correctly', () => {
-    const wrapper = mount(WeaponStatsV2, {
+    const wrapper = mount(WeaponStats, {
       props: {
         weapon: mockWeapon,
         currentDPS: 450.5
@@ -76,7 +76,7 @@ describe('WeaponStatsV2', () => {
   })
 
   it('should not show remove button when removable is false', () => {
-    const wrapper = mount(WeaponStatsV2, {
+    const wrapper = mount(WeaponStats, {
       props: {
         weapon: mockWeapon,
         currentDPS: 450.5,
@@ -87,7 +87,7 @@ describe('WeaponStatsV2', () => {
   })
 
   it('should show remove button when removable is true', () => {
-    const wrapper = mount(WeaponStatsV2, {
+    const wrapper = mount(WeaponStats, {
       props: {
         weapon: mockWeapon,
         currentDPS: 450.5,
@@ -98,7 +98,7 @@ describe('WeaponStatsV2', () => {
   })
 
   it('should emit remove event when remove button is clicked', async () => {
-    const wrapper = mount(WeaponStatsV2, {
+    const wrapper = mount(WeaponStats, {
       props: {
         weapon: mockWeapon,
         currentDPS: 450.5,

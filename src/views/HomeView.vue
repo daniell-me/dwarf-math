@@ -13,14 +13,14 @@ import { getValidUpgradesForWeapon, getUpgradeValue } from '@/utils/weaponFuncti
 import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
 import { useSelectedUpgradesStore } from '@/stores/selectedUpgrades'
 import { useGlobalUpgradesStore } from '@/stores/globalUpgrades'
-import HeaderV2 from '@/components/v2/HeaderV2.vue'
-import WeaponListV2 from '@/components/v2/WeaponListV2.vue'
-import GlobalUpgradesSectionV2 from '@/components/v2/GlobalUpgradesSectionV2.vue'
-import MetaUpgradesPanelV2 from '@/components/v2/MetaUpgradesPanelV2.vue'
-import GearModalV2 from '@/components/v2/GearModalV2.vue'
-import SlideOutDrawerV2 from '@/components/v2/SlideOutDrawerV2.vue'
-import CharacterStatsPanelV2 from '@/components/v2/CharacterStatsPanelV2.vue'
-import SelectedUpgradesPanelV2 from '@/components/v2/SelectedUpgradesPanelV2.vue'
+import Header from '@/components/Header.vue'
+import WeaponList from '@/components/WeaponList.vue'
+import GlobalUpgradesSection from '@/components/GlobalUpgradesSection.vue'
+import MetaUpgradesPanel from '@/components/MetaUpgradesPanel.vue'
+import GearModal from '@/components/GearModal.vue'
+import SlideOutDrawer from '@/components/SlideOutDrawer.vue'
+import CharacterStatsPanel from '@/components/CharacterStatsPanel.vue'
+import SelectedUpgradesPanel from '@/components/SelectedUpgradesPanel.vue'
 
 // Storage keys
 const CLASS_MOD_STORAGE_KEY = 'dwarf-math-selected-class-mod'
@@ -273,8 +273,8 @@ function handleStartNewDive() {
 </script>
 
 <template>
-  <div class="home-v2">
-    <HeaderV2
+  <div class="home">
+    <Header
       :class-mods="classMods"
       :selected-class-mod="selectedClassMod"
       :show-class-modal="showClassModal"
@@ -287,7 +287,7 @@ function handleStartNewDive() {
 
     <div v-if="selectedClassMod" class="main-layout">
       <div class="left-column">
-        <WeaponListV2
+        <WeaponList
           :weapons="equippedWeapons"
           :character-stats="characterStats"
           :get-available-weapons="getAvailableWeapons"
@@ -300,7 +300,7 @@ function handleStartNewDive() {
       </div>
 
       <div class="right-column">
-        <GlobalUpgradesSectionV2
+        <GlobalUpgradesSection
           :tag-upgrades="tagUpgrades"
           :player-upgrades="playerUpgrades"
           :equipped-weapons="equippedWeapons"
@@ -312,8 +312,8 @@ function handleStartNewDive() {
       <p>Select a class to begin</p>
     </div>
 
-    <MetaUpgradesPanelV2 v-if="showMetaUpgrades" @close="showMetaUpgrades = false" />
-    <GearModalV2
+    <MetaUpgradesPanel v-if="showMetaUpgrades" @close="showMetaUpgrades = false" />
+    <GearModal
       v-if="showGear"
       :flat-bonuses="flatGearBonuses"
       :percent-bonuses="percentGearBonuses"
@@ -332,18 +332,18 @@ function handleStartNewDive() {
     </div>
 
     <!-- Slide-out drawers -->
-    <SlideOutDrawerV2 :is-open="showStatsDrawer" title="Character Stats" @close="showStatsDrawer = false">
-      <CharacterStatsPanelV2 :character-stats="characterStats" />
-    </SlideOutDrawerV2>
+    <SlideOutDrawer :is-open="showStatsDrawer" title="Character Stats" @close="showStatsDrawer = false">
+      <CharacterStatsPanel :character-stats="characterStats" />
+    </SlideOutDrawer>
 
-    <SlideOutDrawerV2 :is-open="showBuildDrawer" title="Current Build" @close="showBuildDrawer = false">
-      <SelectedUpgradesPanelV2 :weapons="equippedWeapons" />
-    </SlideOutDrawerV2>
+    <SlideOutDrawer :is-open="showBuildDrawer" title="Current Build" @close="showBuildDrawer = false">
+      <SelectedUpgradesPanel :weapons="equippedWeapons" />
+    </SlideOutDrawer>
   </div>
 </template>
 
 <style scoped>
-.home-v2 {
+.home {
   display: flex;
   flex-direction: column;
   height: 100vh;
