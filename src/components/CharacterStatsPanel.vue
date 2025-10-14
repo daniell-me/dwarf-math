@@ -1,25 +1,9 @@
 <template>
   <div class="character-stats-panel">
     <div v-if="characterStats" class="stats-list">
-      <div class="stat-item">
-        <span class="stat-label">Health:</span>
-        <span class="stat-value">{{ characterStats.health }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Damage:</span>
-        <span class="stat-value">{{ formatPercentage(characterStats.damage) }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Critical Chance:</span>
-        <span class="stat-value">{{ formatPercentage(characterStats.critChance) }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Critical Damage:</span>
-        <span class="stat-value">{{ formatMultiplier(characterStats.critDamage) }}</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-label">Reload Speed:</span>
-        <span class="stat-value">{{ formatPercentage(characterStats.reloadSpeed) }}</span>
+      <div v-for="stat in orderedStats" :key="stat.key" class="stat-item">
+        <span class="stat-label">{{ stat.label }}:</span>
+        <span class="stat-value">{{ formatStatValue(stat) }}</span>
       </div>
     </div>
     <div v-else class="no-stats">
@@ -29,22 +13,62 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { CharacterStats } from '@/data/types'
 
 interface Props {
   characterStats: CharacterStats | null
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
-function formatPercentage(value: number | undefined): string {
-  if (value === undefined) return 'N/A'
-  return `${(value * 100).toFixed(0)}%`
+type StatConfig = {
+  key: keyof CharacterStats
+  label: string
+  format: 'number' | 'percentage' | 'multiplier' | 'flat'
 }
 
-function formatMultiplier(value: number | undefined): string {
+const statConfigs: StatConfig[] = [
+  { key: 'health', label: 'Max HP', format: 'number' },
+  { key: 'lifeRegen', label: 'Life Regen', format: 'flat' },
+  { key: 'armor', label: 'Armor', format: 'number' },
+  { key: 'dodgeChance', label: 'Dodge', format: 'percentage' },
+  { key: 'moveSpeed', label: 'Move Speed', format: 'percentage' },
+  { key: 'damage', label: 'Damage', format: 'percentage' },
+  { key: 'fireRate', label: 'Fire Rate', format: 'percentage' },
+  { key: 'reloadSpeed', label: 'Reload Speed', format: 'percentage' },
+  { key: 'critChance', label: 'Critical Chance', format: 'percentage' },
+  { key: 'critDamage', label: 'Critical Damage', format: 'multiplier' },
+  { key: 'statusDamage', label: 'Status Effect Damage', format: 'percentage' },
+  { key: 'pickupRadius', label: 'Pickup Radius', format: 'percentage' },
+  { key: 'xpGain', label: 'XP Gain', format: 'percentage' },
+  { key: 'miningSpeed', label: 'Mining Speed', format: 'percentage' },
+  { key: 'lifetime', label: 'Lifetime', format: 'percentage' }
+]
+
+const orderedStats = computed(() => {
+  if (!props.characterStats) return []
+  return statConfigs
+})
+
+function formatStatValue(stat: StatConfig): string {
+  if (!props.characterStats) return 'N/A'
+
+  const value = props.characterStats[stat.key]
   if (value === undefined) return 'N/A'
-  return `${value.toFixed(2)}x`
+
+  switch (stat.format) {
+    case 'number':
+      return Math.round(value).toString()
+    case 'percentage':
+      return `${(value * 100).toFixed(0)}%`
+    case 'multiplier':
+      return `${value.toFixed(2)}x`
+    case 'flat':
+      return value.toFixed(1)
+    default:
+      return value.toString()
+  }
 }
 </script>
 
@@ -57,17 +81,18 @@ function formatMultiplier(value: number | undefined): string {
 .stats-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
 .stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem;
-  background: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.stat-item:last-child {
+  border-bottom: none;
 }
 
 .stat-label {

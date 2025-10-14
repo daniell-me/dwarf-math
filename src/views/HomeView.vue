@@ -18,7 +18,6 @@ import WeaponList from '@/components/WeaponList.vue'
 import GlobalUpgradesSection from '@/components/GlobalUpgradesSection.vue'
 import MetaUpgradesPanel from '@/components/MetaUpgradesPanel.vue'
 import GearModal from '@/components/GearModal.vue'
-import SlideOutDrawer from '@/components/SlideOutDrawer.vue'
 import CharacterStatsPanel from '@/components/CharacterStatsPanel.vue'
 import SelectedUpgradesPanel from '@/components/SelectedUpgradesPanel.vue'
 
@@ -108,9 +107,8 @@ const selectedUpgradesStore = useSelectedUpgradesStore()
 const globalUpgradesStore = useGlobalUpgradesStore()
 const showMetaUpgrades = ref(false)
 const showGear = ref(false)
-const showStatsDrawer = ref(false)
-const showBuildDrawer = ref(false)
 const showClassModal = ref(false)
+const activeDrawerTab = ref<'stats' | 'build'>('stats')
 
 // Gear bonuses
 const flatGearBonuses = ref<Partial<CharacterStats>>(loadGearBonuses(FLAT_GEAR_BONUSES_STORAGE_KEY))
@@ -286,10 +284,29 @@ function handleStartNewDive() {
     />
 
     <div class="content-with-drawers">
-      <!-- Left drawer (Stats) -->
-      <SlideOutDrawer :is-open="showStatsDrawer" title="Character Stats" @close="showStatsDrawer = false">
-        <CharacterStatsPanel :character-stats="characterStats" />
-      </SlideOutDrawer>
+      <!-- Left drawer with tabs -->
+      <div class="drawer-content">
+        <div class="drawer-header">
+          <div class="drawer-tabs">
+            <button
+              @click="activeDrawerTab = 'stats'"
+              :class="['tab-button', { active: activeDrawerTab === 'stats' }]"
+            >
+              Character Stats
+            </button>
+            <button
+              @click="activeDrawerTab = 'build'"
+              :class="['tab-button', { active: activeDrawerTab === 'build' }]"
+            >
+              Current Build
+            </button>
+          </div>
+        </div>
+        <div class="drawer-body">
+          <CharacterStatsPanel v-if="activeDrawerTab === 'stats'" :character-stats="characterStats" />
+          <SelectedUpgradesPanel v-if="activeDrawerTab === 'build'" :weapons="equippedWeapons" />
+        </div>
+      </div>
 
       <!-- Main content area -->
       <div class="main-content">
@@ -320,11 +337,6 @@ function handleStartNewDive() {
           <p>Select a class to begin</p>
         </div>
       </div>
-
-      <!-- Right drawer (Build) -->
-      <SlideOutDrawer :is-open="showBuildDrawer" title="Current Build" @close="showBuildDrawer = false">
-        <SelectedUpgradesPanel :weapons="equippedWeapons" />
-      </SlideOutDrawer>
     </div>
 
     <MetaUpgradesPanel v-if="showMetaUpgrades" @close="showMetaUpgrades = false" />
@@ -335,16 +347,6 @@ function handleStartNewDive() {
       @update="handleGearUpdate"
       @close="showGear = false"
     />
-
-    <!-- Floating buttons on left side -->
-    <div class="floating-buttons">
-      <button @click="showStatsDrawer = true" class="floating-button" title="Character Stats">
-        <span>📊</span>
-      </button>
-      <button @click="showBuildDrawer = true" class="floating-button" title="Current Build">
-        <span>🔧</span>
-      </button>
-    </div>
   </div>
 </template>
 
@@ -360,6 +362,57 @@ function handleStartNewDive() {
   display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+.drawer-content {
+  background: var(--color-background-soft);
+  width: 280px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.drawer-header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-soft);
+}
+
+.drawer-tabs {
+  display: flex;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--color-background-mute);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  background: var(--color-background-soft);
+}
+
+.tab-button.active {
+  background: var(--color-background-soft);
+  border-bottom-color: var(--vt-c-green);
+  color: var(--color-heading);
+  font-weight: 600;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
 }
 
 .main-content {
@@ -405,44 +458,5 @@ h2 {
   justify-content: center;
   color: var(--color-text-muted);
   font-size: 1.2rem;
-}
-
-.floating-buttons {
-  position: fixed;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  z-index: 100;
-}
-
-.floating-button {
-  width: 3rem;
-  height: 3rem;
-  border: 2px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s;
-}
-
-.floating-button:hover {
-  background: var(--color-background-mute);
-  border-color: var(--color-border-hover);
-  transform: scale(1.1);
-}
-
-.floating-button span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>

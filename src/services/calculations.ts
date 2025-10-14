@@ -94,22 +94,26 @@ export function calculateCurrentStats(
   // Initialize all stats with defaults
   const currentStats: CharacterStats = {
     health: 0,
+    lifeRegen: 0,
     armor: 0,
     dodgeChance: 0,
+    moveSpeed: 0,
+    damage: 1.0, // Default multiplier (1.0 = no bonus)
+    fireRate: 1.0, // Default multiplier
+    reloadSpeed: 1.0, // Default multiplier (1.0 = no bonus)
     critChance: 0,
     critDamage: 1.0, // Default multiplier
+    statusDamage: 0,
+    pickupRadius: 0,
     xpGain: 0,
     miningSpeed: 0,
-    moveSpeed: 0,
+    lifetime: 0,
     weaponRange: 0,
-    reloadSpeed: 1.0, // Default multiplier (1.0 = no bonus)
-    damage: 1.0, // Default multiplier (1.0 = no bonus)
-    explosionRadius: 0,
-    statusDamage: 0
+    explosionRadius: 0
   }
 
   // Weapon multiplier stats that start at 1.0 and multiply bonuses
-  const weaponMultiplierStats: Array<keyof CharacterStats> = ['damage', 'reloadSpeed']
+  const weaponMultiplierStats: Array<keyof CharacterStats> = ['damage', 'reloadSpeed', 'fireRate']
 
   // For each stat, layer on all the sources
   const statKeys = Object.keys(currentStats) as Array<keyof CharacterStats>
