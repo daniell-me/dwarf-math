@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Weapon, CharacterStats, Upgrade, Rarity } from '@/data/types'
-import RarityHeaderV2 from './RarityHeaderV2.vue'
-import WeaponSectionV2 from './WeaponSectionV2.vue'
+import RarityHeader from './RarityHeader.vue'
+import WeaponSection from './WeaponSection.vue'
 
 interface Props {
   weapons: (Weapon | null)[]
@@ -23,8 +23,8 @@ const emit = defineEmits<Emits>()
 
 <template>
   <div class="weapon-list">
-    <RarityHeaderV2 />
-    <WeaponSectionV2
+    <RarityHeader />
+    <WeaponSection
       v-for="(weapon, index) in weapons"
       :key="index"
       :weapon="weapon"

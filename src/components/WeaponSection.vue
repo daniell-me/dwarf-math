@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Weapon, CharacterStats, Upgrade, Rarity } from '@/data/types'
-import WeaponStatsV2 from './WeaponStatsV2.vue'
-import UpgradeTableV2 from './UpgradeTableV2.vue'
-import EmptyWeaponSlotV2 from './EmptyWeaponSlotV2.vue'
+import WeaponStats from './WeaponStats.vue'
+import UpgradeTable from './UpgradeTable.vue'
+import EmptyWeaponSlot from './EmptyWeaponSlot.vue'
 
 interface Props {
   weapon: Weapon | null
@@ -27,13 +27,13 @@ const emit = defineEmits<Emits>()
   <div class="weapon-section">
     <template v-if="weapon && characterStats">
       <div class="weapon-row">
-        <WeaponStatsV2
+        <WeaponStats
           :weapon="weapon"
           :current-d-p-s="getCurrentDPS(weapon)"
           :removable="slotIndex !== 0"
           @remove="emit('removeWeapon')"
         />
-        <UpgradeTableV2
+        <UpgradeTable
           :upgrades="upgrades"
           :weapon="weapon"
           :character-stats="characterStats"
@@ -41,7 +41,7 @@ const emit = defineEmits<Emits>()
         />
       </div>
     </template>
-    <EmptyWeaponSlotV2
+    <EmptyWeaponSlot
       v-else
       :slot-index="slotIndex"
       :available-weapons="availableWeapons"

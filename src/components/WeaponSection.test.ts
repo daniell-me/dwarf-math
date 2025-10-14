@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import WeaponSectionV2 from './WeaponSectionV2.vue'
+import WeaponSection from './WeaponSection.vue'
 import type { Weapon, Upgrade, CharacterStats } from '@/data/types'
 import { WeaponTag, Class, Stat, Rarity } from '@/data/types'
 
@@ -51,13 +51,13 @@ const mockAvailableWeapons: Weapon[] = [
 const mockGetUpgradedDPS = (): number => 500
 const mockGetCurrentDPS = (): number => 450
 
-describe('WeaponSectionV2', () => {
+describe('WeaponSection', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
   it('should render the component', () => {
-    const wrapper = mount(WeaponSectionV2, {
+    const wrapper = mount(WeaponSection, {
       props: {
         weapon: null,
         slotIndex: 0,
@@ -71,8 +71,8 @@ describe('WeaponSectionV2', () => {
     expect(wrapper.exists()).toBe(true)
   })
 
-  it('should display EmptyWeaponSlotV2 when weapon is null', () => {
-    const wrapper = mount(WeaponSectionV2, {
+  it('should display EmptyWeaponSlot when weapon is null', () => {
+    const wrapper = mount(WeaponSection, {
       props: {
         weapon: null,
         slotIndex: 0,
@@ -84,12 +84,12 @@ describe('WeaponSectionV2', () => {
       }
     })
 
-    expect(wrapper.findComponent({ name: 'EmptyWeaponSlotV2' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'EmptyWeaponSlot' }).exists()).toBe(true)
     expect(wrapper.find('.weapon-row').exists()).toBe(false)
   })
 
-  it('should display WeaponStatsV2 and UpgradeTableV2 when weapon is provided', () => {
-    const wrapper = mount(WeaponSectionV2, {
+  it('should display WeaponStats and UpgradeTable when weapon is provided', () => {
+    const wrapper = mount(WeaponSection, {
       props: {
         weapon: mockWeapon,
         slotIndex: 0,
@@ -102,13 +102,13 @@ describe('WeaponSectionV2', () => {
     })
 
     expect(wrapper.find('.weapon-row').exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'WeaponStatsV2' }).exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'UpgradeTableV2' }).exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'EmptyWeaponSlotV2' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'WeaponStats' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'UpgradeTable' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'EmptyWeaponSlot' }).exists()).toBe(false)
   })
 
-  it('should emit selectWeapon event from EmptyWeaponSlotV2', async () => {
-    const wrapper = mount(WeaponSectionV2, {
+  it('should emit selectWeapon event from EmptyWeaponSlot', async () => {
+    const wrapper = mount(WeaponSection, {
       props: {
         weapon: null,
         slotIndex: 0,
@@ -120,15 +120,15 @@ describe('WeaponSectionV2', () => {
       }
     })
 
-    const emptySlot = wrapper.findComponent({ name: 'EmptyWeaponSlotV2' })
+    const emptySlot = wrapper.findComponent({ name: 'EmptyWeaponSlot' })
     await emptySlot.vm.$emit('selectWeapon', mockAvailableWeapons[0])
 
     expect(wrapper.emitted('selectWeapon')).toBeTruthy()
     expect(wrapper.emitted('selectWeapon')?.[0][0]).toEqual(mockAvailableWeapons[0])
   })
 
-  it('should emit removeWeapon event from WeaponStatsV2', async () => {
-    const wrapper = mount(WeaponSectionV2, {
+  it('should emit removeWeapon event from WeaponStats', async () => {
+    const wrapper = mount(WeaponSection, {
       props: {
         weapon: mockWeapon,
         slotIndex: 1, // Not slot 0, so removable
@@ -140,14 +140,14 @@ describe('WeaponSectionV2', () => {
       }
     })
 
-    const weaponStats = wrapper.findComponent({ name: 'WeaponStatsV2' })
+    const weaponStats = wrapper.findComponent({ name: 'WeaponStats' })
     await weaponStats.vm.$emit('remove')
 
     expect(wrapper.emitted('removeWeapon')).toBeTruthy()
   })
 
-  it('should pass removable=false to WeaponStatsV2 for slot 0', () => {
-    const wrapper = mount(WeaponSectionV2, {
+  it('should pass removable=false to WeaponStats for slot 0', () => {
+    const wrapper = mount(WeaponSection, {
       props: {
         weapon: mockWeapon,
         slotIndex: 0,
@@ -159,12 +159,12 @@ describe('WeaponSectionV2', () => {
       }
     })
 
-    const weaponStats = wrapper.findComponent({ name: 'WeaponStatsV2' })
+    const weaponStats = wrapper.findComponent({ name: 'WeaponStats' })
     expect(weaponStats.props('removable')).toBe(false)
   })
 
-  it('should pass removable=true to WeaponStatsV2 for slots > 0', () => {
-    const wrapper = mount(WeaponSectionV2, {
+  it('should pass removable=true to WeaponStats for slots > 0', () => {
+    const wrapper = mount(WeaponSection, {
       props: {
         weapon: mockWeapon,
         slotIndex: 1,
@@ -176,7 +176,7 @@ describe('WeaponSectionV2', () => {
       }
     })
 
-    const weaponStats = wrapper.findComponent({ name: 'WeaponStatsV2' })
+    const weaponStats = wrapper.findComponent({ name: 'WeaponStats' })
     expect(weaponStats.props('removable')).toBe(true)
   })
 })

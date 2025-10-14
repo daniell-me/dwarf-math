@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import UpgradeTableV2 from './UpgradeTableV2.vue'
+import UpgradeTable from './UpgradeTable.vue'
 import type { Weapon, Upgrade, CharacterStats } from '@/data/types'
 import { WeaponTag, Class, Stat, Rarity } from '@/data/types'
 import { getUpgradeValue } from '@/utils/weaponFunctions'
@@ -55,13 +55,13 @@ const mockGetUpgradedDPS = (_weapon: Weapon, upgrade: Upgrade, rarity: Rarity): 
   return 500 + value * 1000 // Mock calculation
 }
 
-describe('UpgradeTableV2', () => {
+describe('UpgradeTable', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
   it('should render the component', () => {
-    const wrapper = mount(UpgradeTableV2, {
+    const wrapper = mount(UpgradeTable, {
       props: {
         upgrades: mockUpgrades,
         weapon: mockWeapon,
@@ -73,7 +73,7 @@ describe('UpgradeTableV2', () => {
   })
 
   it('should display upgrade rows for each upgrade', () => {
-    const wrapper = mount(UpgradeTableV2, {
+    const wrapper = mount(UpgradeTable, {
       props: {
         upgrades: mockUpgrades,
         weapon: mockWeapon,
@@ -87,7 +87,7 @@ describe('UpgradeTableV2', () => {
   })
 
   it('should format stat names correctly', () => {
-    const wrapper = mount(UpgradeTableV2, {
+    const wrapper = mount(UpgradeTable, {
       props: {
         upgrades: mockUpgrades,
         weapon: mockWeapon,
@@ -97,12 +97,12 @@ describe('UpgradeTableV2', () => {
     })
 
     const upgradeNames = wrapper.findAll('.upgrade-name')
-    expect(upgradeNames[0].text()).toBe('Dmg')
+    expect(upgradeNames[0].text()).toBe('Damage')
     expect(upgradeNames[1].text()).toBe('Fire Rate')
   })
 
   it('should display DPS values for each rarity', () => {
-    const wrapper = mount(UpgradeTableV2, {
+    const wrapper = mount(UpgradeTable, {
       props: {
         upgrades: [mockUpgrades[0]],
         weapon: mockWeapon,
@@ -120,7 +120,7 @@ describe('UpgradeTableV2', () => {
   })
 
   it('should display "-" for unavailable rarity values', () => {
-    const wrapper = mount(UpgradeTableV2, {
+    const wrapper = mount(UpgradeTable, {
       props: {
         upgrades: [mockUpgrades[1]], // Fire Rate has only common and uncommon
         weapon: mockWeapon,
@@ -136,7 +136,7 @@ describe('UpgradeTableV2', () => {
   })
 
   it('should handle click on DPS cell', async () => {
-    const wrapper = mount(UpgradeTableV2, {
+    const wrapper = mount(UpgradeTable, {
       props: {
         upgrades: [mockUpgrades[0]],
         weapon: mockWeapon,
@@ -148,7 +148,7 @@ describe('UpgradeTableV2', () => {
     const firstCell = wrapper.find('.dps-cell')
     await firstCell.trigger('click')
 
-    // Cell should have selected class after click
-    expect(firstCell.classes()).toContain('selected')
+    // Cell should have pulse class after click
+    expect(firstCell.classes()).toContain('pulse')
   })
 })
