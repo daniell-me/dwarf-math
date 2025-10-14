@@ -285,31 +285,46 @@ function handleStartNewDive() {
       @start-new-dive="handleStartNewDive"
     />
 
-    <div v-if="selectedClassMod" class="main-layout">
-      <div class="left-column">
-        <WeaponList
-          :weapons="equippedWeapons"
-          :character-stats="characterStats"
-          :get-available-weapons="getAvailableWeapons"
-          :get-valid-upgrades="getValidUpgrades"
-          :get-upgraded-d-p-s="getUpgradedDPS"
-          :get-current-d-p-s="getCurrentDPS"
-          @select-weapon="setWeapon"
-          @remove-weapon="removeWeapon"
-        />
+    <div class="content-with-drawers">
+      <!-- Left drawer (Stats) -->
+      <SlideOutDrawer :is-open="showStatsDrawer" title="Character Stats" @close="showStatsDrawer = false">
+        <CharacterStatsPanel :character-stats="characterStats" />
+      </SlideOutDrawer>
+
+      <!-- Main content area -->
+      <div class="main-content">
+        <div v-if="selectedClassMod" class="main-layout">
+          <div class="left-column">
+            <WeaponList
+              :weapons="equippedWeapons"
+              :character-stats="characterStats"
+              :get-available-weapons="getAvailableWeapons"
+              :get-valid-upgrades="getValidUpgrades"
+              :get-upgraded-d-p-s="getUpgradedDPS"
+              :get-current-d-p-s="getCurrentDPS"
+              @select-weapon="setWeapon"
+              @remove-weapon="removeWeapon"
+            />
+          </div>
+
+          <div class="right-column">
+            <GlobalUpgradesSection
+              :tag-upgrades="tagUpgrades"
+              :player-upgrades="playerUpgrades"
+              :equipped-weapons="equippedWeapons"
+            />
+          </div>
+        </div>
+
+        <div v-else class="no-class-selected">
+          <p>Select a class to begin</p>
+        </div>
       </div>
 
-      <div class="right-column">
-        <GlobalUpgradesSection
-          :tag-upgrades="tagUpgrades"
-          :player-upgrades="playerUpgrades"
-          :equipped-weapons="equippedWeapons"
-        />
-      </div>
-    </div>
-
-    <div v-else class="no-class-selected">
-      <p>Select a class to begin</p>
+      <!-- Right drawer (Build) -->
+      <SlideOutDrawer :is-open="showBuildDrawer" title="Current Build" @close="showBuildDrawer = false">
+        <SelectedUpgradesPanel :weapons="equippedWeapons" />
+      </SlideOutDrawer>
     </div>
 
     <MetaUpgradesPanel v-if="showMetaUpgrades" @close="showMetaUpgrades = false" />
@@ -330,15 +345,6 @@ function handleStartNewDive() {
         <span>🔧</span>
       </button>
     </div>
-
-    <!-- Slide-out drawers -->
-    <SlideOutDrawer :is-open="showStatsDrawer" title="Character Stats" @close="showStatsDrawer = false">
-      <CharacterStatsPanel :character-stats="characterStats" />
-    </SlideOutDrawer>
-
-    <SlideOutDrawer :is-open="showBuildDrawer" title="Current Build" @close="showBuildDrawer = false">
-      <SelectedUpgradesPanel :weapons="equippedWeapons" />
-    </SlideOutDrawer>
   </div>
 </template>
 
@@ -348,6 +354,20 @@ function handleStartNewDive() {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+}
+
+.content-with-drawers {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .main-layout {

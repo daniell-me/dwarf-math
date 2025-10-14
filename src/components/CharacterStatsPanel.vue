@@ -57,14 +57,14 @@ function formatMultiplier(value: number | undefined): string {
 .stats-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: var(--color-background-mute);
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -72,12 +72,13 @@ function formatMultiplier(value: number | undefined): string {
 
 .stat-label {
   font-weight: 600;
+  font-size: 0.9rem;
   color: var(--color-heading);
 }
 
 .stat-value {
   font-family: monospace;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: bold;
   color: var(--color-text);
 }
