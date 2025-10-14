@@ -89,8 +89,8 @@ function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
   background: var(--color-background-soft);
   border: 2px solid var(--color-border);
   border-radius: 8px;
-  width: 90%;
-  max-width: 600px;
+  width: 95%;
+  max-width: 1400px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -146,16 +146,17 @@ function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
 .upgrades-list {
   overflow-y: auto;
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
   gap: 0.75rem;
 }
 
 .upgrade-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.75rem;
   background: var(--color-background-mute);
   border: 1px solid var(--color-border);
@@ -169,35 +170,39 @@ function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
 
 .upgrade-name {
   font-weight: 600;
+  font-size: 0.9rem;
   color: var(--color-heading);
   margin-bottom: 0.25rem;
 }
 
 .upgrade-description {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--color-text);
 }
 
 .upgrade-bonus {
   color: hsla(160, 100%, 37%, 1);
   font-weight: 600;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
+  display: block;
+  margin-top: 0.25rem;
 }
 
 .upgrade-controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
 }
 
 .level-button {
-  width: 2rem;
-  height: 2rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border: 1px solid var(--color-border);
   background: var(--color-background);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -217,9 +222,10 @@ function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
 }
 
 .level-display {
-  min-width: 4rem;
+  min-width: 3rem;
   text-align: center;
   font-weight: 600;
+  font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
 }
 </style>

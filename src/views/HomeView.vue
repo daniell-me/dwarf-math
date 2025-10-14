@@ -13,13 +13,13 @@ import { getValidUpgradesForWeapon, getUpgradeValue } from '@/utils/weaponFuncti
 import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
 import { useSelectedUpgradesStore } from '@/stores/selectedUpgrades'
 import { useGlobalUpgradesStore } from '@/stores/globalUpgrades'
+import { usePlayerStatsStore } from '@/stores/playerStats'
 import Header from '@/components/Header.vue'
 import WeaponList from '@/components/WeaponList.vue'
 import GlobalUpgradesSection from '@/components/GlobalUpgradesSection.vue'
 import MetaUpgradesPanel from '@/components/MetaUpgradesPanel.vue'
 import GearModal from '@/components/GearModal.vue'
-import SlideOutDrawer from '@/components/SlideOutDrawer.vue'
-import CharacterStatsPanel from '@/components/CharacterStatsPanel.vue'
+import PlayerStatsPanel from '@/components/PlayerStatsPanel.vue'
 import SelectedUpgradesPanel from '@/components/SelectedUpgradesPanel.vue'
 
 // Storage keys
@@ -106,11 +106,11 @@ const equippedWeapons = ref<(Weapon | null)[]>(loadEquippedWeapons())
 const metaUpgradesStore = useMetaUpgradesStore()
 const selectedUpgradesStore = useSelectedUpgradesStore()
 const globalUpgradesStore = useGlobalUpgradesStore()
+const playerStatsStore = usePlayerStatsStore()
 const showMetaUpgrades = ref(false)
 const showGear = ref(false)
-const showStatsDrawer = ref(false)
-const showBuildDrawer = ref(false)
 const showClassModal = ref(false)
+const activeDrawerTab = ref<'stats' | 'build'>('stats')
 
 // Gear bonuses
 const flatGearBonuses = ref<Partial<CharacterStats>>(loadGearBonuses(FLAT_GEAR_BONUSES_STORAGE_KEY))
@@ -124,6 +124,18 @@ watch(selectedClassMod, (newValue) => {
 watch(equippedWeapons, (newValue) => {
   saveEquippedWeapons(newValue)
 }, { deep: true })
+
+// Watch meta upgrades and recalculate player stats when they change
+watch(() => metaUpgradesStore.levels, () => {
+  playerStatsStore.onMetaUpgradesChanged()
+}, { deep: true })
+
+// Initialize player stats on mount if a class mod is already selected
+onMounted(() => {
+  if (selectedClassMod.value) {
+    playerStatsStore.initialize(selectedClassMod.value, flatGearBonuses.value, percentGearBonuses.value)
+  }
+})
 
 // Calculate current character stats based on class, class mod, meta upgrades, and gear
 const characterStats = computed<CharacterStats | null>(() => {
@@ -151,6 +163,9 @@ function handleClassModChange(classMod: ClassMod) {
     const startingWeapon = weaponsMap[classMod.startingWeaponId]
     equippedWeapons.value = [startingWeapon, null, null, null]
   }
+
+  // Initialize player stats with new class mod
+  playerStatsStore.initialize(classMod, flatGearBonuses.value, percentGearBonuses.value)
 
   // Close the modal after selection
   showClassModal.value = false
@@ -254,6 +269,9 @@ function handleGearUpdate(flat: Partial<CharacterStats>, percent: Partial<Charac
   percentGearBonuses.value = percent
   saveGearBonuses(FLAT_GEAR_BONUSES_STORAGE_KEY, flat)
   saveGearBonuses(PERCENT_GEAR_BONUSES_STORAGE_KEY, percent)
+
+  // Update player stats when gear changes
+  playerStatsStore.onGearChanged(flat, percent)
 }
 
 function handleStartNewDive() {
@@ -266,6 +284,9 @@ function handleStartNewDive() {
   // Clear upgrade stores (but NOT meta upgrades)
   selectedUpgradesStore.clearAll()
   globalUpgradesStore.resetAll()
+
+  // Reset player stats for new dive
+  playerStatsStore.onNewDive()
 
   // Open class selection modal
   showClassModal.value = true
@@ -285,31 +306,60 @@ function handleStartNewDive() {
       @start-new-dive="handleStartNewDive"
     />
 
-    <div v-if="selectedClassMod" class="main-layout">
-      <div class="left-column">
-        <WeaponList
-          :weapons="equippedWeapons"
-          :character-stats="characterStats"
-          :get-available-weapons="getAvailableWeapons"
-          :get-valid-upgrades="getValidUpgrades"
-          :get-upgraded-d-p-s="getUpgradedDPS"
-          :get-current-d-p-s="getCurrentDPS"
-          @select-weapon="setWeapon"
-          @remove-weapon="removeWeapon"
-        />
+    <div class="content-with-drawers">
+      <!-- Left drawer with tabs -->
+      <div class="drawer-content">
+        <div class="drawer-header">
+          <div class="drawer-tabs">
+            <button
+              @click="activeDrawerTab = 'stats'"
+              :class="['tab-button', { active: activeDrawerTab === 'stats' }]"
+            >
+              Player Stats
+            </button>
+            <button
+              @click="activeDrawerTab = 'build'"
+              :class="['tab-button', { active: activeDrawerTab === 'build' }]"
+            >
+              Current Build
+            </button>
+          </div>
+        </div>
+        <div class="drawer-body">
+          <PlayerStatsPanel v-if="activeDrawerTab === 'stats'" />
+          <SelectedUpgradesPanel v-if="activeDrawerTab === 'build'" :weapons="equippedWeapons" />
+        </div>
       </div>
 
-      <div class="right-column">
-        <GlobalUpgradesSection
-          :tag-upgrades="tagUpgrades"
-          :player-upgrades="playerUpgrades"
-          :equipped-weapons="equippedWeapons"
-        />
-      </div>
-    </div>
+      <!-- Main content area -->
+      <div class="main-content">
+        <div v-if="selectedClassMod" class="main-layout">
+          <div class="left-column">
+            <WeaponList
+              :weapons="equippedWeapons"
+              :character-stats="characterStats"
+              :get-available-weapons="getAvailableWeapons"
+              :get-valid-upgrades="getValidUpgrades"
+              :get-upgraded-d-p-s="getUpgradedDPS"
+              :get-current-d-p-s="getCurrentDPS"
+              @select-weapon="setWeapon"
+              @remove-weapon="removeWeapon"
+            />
+          </div>
 
-    <div v-else class="no-class-selected">
-      <p>Select a class to begin</p>
+          <div class="right-column">
+            <GlobalUpgradesSection
+              :tag-upgrades="tagUpgrades"
+              :player-upgrades="playerUpgrades"
+              :equipped-weapons="equippedWeapons"
+            />
+          </div>
+        </div>
+
+        <div v-else class="no-class-selected">
+          <p>Select a class to begin</p>
+        </div>
+      </div>
     </div>
 
     <MetaUpgradesPanel v-if="showMetaUpgrades" @close="showMetaUpgrades = false" />
@@ -320,25 +370,6 @@ function handleStartNewDive() {
       @update="handleGearUpdate"
       @close="showGear = false"
     />
-
-    <!-- Floating buttons on left side -->
-    <div class="floating-buttons">
-      <button @click="showStatsDrawer = true" class="floating-button" title="Character Stats">
-        <span>📊</span>
-      </button>
-      <button @click="showBuildDrawer = true" class="floating-button" title="Current Build">
-        <span>🔧</span>
-      </button>
-    </div>
-
-    <!-- Slide-out drawers -->
-    <SlideOutDrawer :is-open="showStatsDrawer" title="Character Stats" @close="showStatsDrawer = false">
-      <CharacterStatsPanel :character-stats="characterStats" />
-    </SlideOutDrawer>
-
-    <SlideOutDrawer :is-open="showBuildDrawer" title="Current Build" @close="showBuildDrawer = false">
-      <SelectedUpgradesPanel :weapons="equippedWeapons" />
-    </SlideOutDrawer>
   </div>
 </template>
 
@@ -348,6 +379,71 @@ function handleStartNewDive() {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+}
+
+.content-with-drawers {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.drawer-content {
+  background: var(--color-background-soft);
+  width: 280px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.drawer-header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-soft);
+}
+
+.drawer-tabs {
+  display: flex;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--color-background-mute);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  background: var(--color-background-soft);
+}
+
+.tab-button.active {
+  background: var(--color-background-soft);
+  border-bottom-color: var(--vt-c-green);
+  color: var(--color-heading);
+  font-weight: 600;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .main-layout {
@@ -385,44 +481,5 @@ h2 {
   justify-content: center;
   color: var(--color-text-muted);
   font-size: 1.2rem;
-}
-
-.floating-buttons {
-  position: fixed;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  z-index: 100;
-}
-
-.floating-button {
-  width: 3rem;
-  height: 3rem;
-  border: 2px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s;
-}
-
-.floating-button:hover {
-  background: var(--color-background-mute);
-  border-color: var(--color-border-hover);
-  transform: scale(1.1);
-}
-
-.floating-button span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 </style>

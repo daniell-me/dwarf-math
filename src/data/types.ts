@@ -76,18 +76,22 @@ export interface Weapon {
 
 export interface CharacterStats {
   health: number
+  lifeRegen?: number
   armor?: number
   dodgeChance?: number
+  moveSpeed?: number
+  damage?: number
+  fireRate?: number
+  reloadSpeed?: number
   critChance: number
   critDamage: number
+  statusDamage?: number
+  pickupRadius?: number
   xpGain?: number
   miningSpeed?: number
-  moveSpeed?: number
+  lifetime?: number
   weaponRange?: number
-  reloadSpeed?: number
-  damage?: number
   explosionRadius?: number
-  statusDamage?: number
 }
 
 export const UpgradeCategory = {

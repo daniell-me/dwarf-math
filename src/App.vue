@@ -121,9 +121,10 @@ body {
 
 /* App container styles */
 #app {
-  max-width: 85%;
-  margin: 0 auto;
-  padding: 1rem;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
   font-weight: normal;
 }
 
@@ -141,15 +142,11 @@ a,
   }
 }
 
-@media (min-width: 1024px) {
-  #app {
-    padding: 0 1rem;
-  }
-}
-
 /* App container */
 .app-container {
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .vt-c-green {
