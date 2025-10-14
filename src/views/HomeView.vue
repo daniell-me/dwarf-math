@@ -13,12 +13,13 @@ import { getValidUpgradesForWeapon, getUpgradeValue } from '@/utils/weaponFuncti
 import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
 import { useSelectedUpgradesStore } from '@/stores/selectedUpgrades'
 import { useGlobalUpgradesStore } from '@/stores/globalUpgrades'
+import { usePlayerStatsStore } from '@/stores/playerStats'
 import Header from '@/components/Header.vue'
 import WeaponList from '@/components/WeaponList.vue'
 import GlobalUpgradesSection from '@/components/GlobalUpgradesSection.vue'
 import MetaUpgradesPanel from '@/components/MetaUpgradesPanel.vue'
 import GearModal from '@/components/GearModal.vue'
-import CharacterStatsPanel from '@/components/CharacterStatsPanel.vue'
+import PlayerStatsPanel from '@/components/PlayerStatsPanel.vue'
 import SelectedUpgradesPanel from '@/components/SelectedUpgradesPanel.vue'
 
 // Storage keys
@@ -105,6 +106,7 @@ const equippedWeapons = ref<(Weapon | null)[]>(loadEquippedWeapons())
 const metaUpgradesStore = useMetaUpgradesStore()
 const selectedUpgradesStore = useSelectedUpgradesStore()
 const globalUpgradesStore = useGlobalUpgradesStore()
+const playerStatsStore = usePlayerStatsStore()
 const showMetaUpgrades = ref(false)
 const showGear = ref(false)
 const showClassModal = ref(false)
@@ -122,6 +124,18 @@ watch(selectedClassMod, (newValue) => {
 watch(equippedWeapons, (newValue) => {
   saveEquippedWeapons(newValue)
 }, { deep: true })
+
+// Watch meta upgrades and recalculate player stats when they change
+watch(() => metaUpgradesStore.levels, () => {
+  playerStatsStore.onMetaUpgradesChanged()
+}, { deep: true })
+
+// Initialize player stats on mount if a class mod is already selected
+onMounted(() => {
+  if (selectedClassMod.value) {
+    playerStatsStore.initialize(selectedClassMod.value, flatGearBonuses.value, percentGearBonuses.value)
+  }
+})
 
 // Calculate current character stats based on class, class mod, meta upgrades, and gear
 const characterStats = computed<CharacterStats | null>(() => {
@@ -149,6 +163,9 @@ function handleClassModChange(classMod: ClassMod) {
     const startingWeapon = weaponsMap[classMod.startingWeaponId]
     equippedWeapons.value = [startingWeapon, null, null, null]
   }
+
+  // Initialize player stats with new class mod
+  playerStatsStore.initialize(classMod, flatGearBonuses.value, percentGearBonuses.value)
 
   // Close the modal after selection
   showClassModal.value = false
@@ -252,6 +269,9 @@ function handleGearUpdate(flat: Partial<CharacterStats>, percent: Partial<Charac
   percentGearBonuses.value = percent
   saveGearBonuses(FLAT_GEAR_BONUSES_STORAGE_KEY, flat)
   saveGearBonuses(PERCENT_GEAR_BONUSES_STORAGE_KEY, percent)
+
+  // Update player stats when gear changes
+  playerStatsStore.onGearChanged(flat, percent)
 }
 
 function handleStartNewDive() {
@@ -264,6 +284,9 @@ function handleStartNewDive() {
   // Clear upgrade stores (but NOT meta upgrades)
   selectedUpgradesStore.clearAll()
   globalUpgradesStore.resetAll()
+
+  // Reset player stats for new dive
+  playerStatsStore.onNewDive()
 
   // Open class selection modal
   showClassModal.value = true
@@ -292,7 +315,7 @@ function handleStartNewDive() {
               @click="activeDrawerTab = 'stats'"
               :class="['tab-button', { active: activeDrawerTab === 'stats' }]"
             >
-              Character Stats
+              Player Stats
             </button>
             <button
               @click="activeDrawerTab = 'build'"
@@ -303,7 +326,7 @@ function handleStartNewDive() {
           </div>
         </div>
         <div class="drawer-body">
-          <CharacterStatsPanel v-if="activeDrawerTab === 'stats'" :character-stats="characterStats" />
+          <PlayerStatsPanel v-if="activeDrawerTab === 'stats'" />
           <SelectedUpgradesPanel v-if="activeDrawerTab === 'build'" :weapons="equippedWeapons" />
         </div>
       </div>
