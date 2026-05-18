@@ -12,7 +12,7 @@
           <div class="upgrade-info">
             <div class="upgrade-name">{{ upgrade.name }}</div>
             <div class="upgrade-description">
-              {{ upgrade.description || formatStatName(upgrade.stat) }}
+              {{ upgrade.description || formatStatName(upgrade.statId) }}
               <span v-if="upgrade.currentLevel > 0" class="upgrade-bonus">
                 {{ formatBonus(upgrade) }}
               </span>
@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { useMetaUpgradesStore } from '@/stores/metaUpgrades'
+import { statDefinitions, formatStatValue } from '@/data/statDefinitions'
 import type { MetaUpgrade } from '@/data/types'
 
 defineEmits<{
@@ -52,8 +53,14 @@ defineEmits<{
 
 const store = useMetaUpgradesStore()
 
-function formatStatName(stat: string): string {
-  return stat.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+function formatStatName(statId: string): string {
+  // Try to get from stat definitions first
+  const stat = statDefinitions[statId]
+  if (stat) {
+    return stat.name
+  }
+  // Fallback to old formatting for non-standard stats
+  return statId.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
 }
 
 function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
@@ -63,11 +70,14 @@ function formatBonus(upgrade: MetaUpgrade & { currentLevel: number }): string {
 
   const totalBonus = upgrade.bonusValues[upgrade.currentLevel - 1] ?? 0
 
-  if (upgrade.bonusType === 'percentage') {
-    return `+${(totalBonus * 100).toFixed(0)}%`
-  } else {
-    return `+${totalBonus}`
+  // Try to use stat definition formatting
+  const stat = statDefinitions[upgrade.statId]
+  if (stat) {
+    return formatStatValue(stat, totalBonus)
   }
+
+  // Fallback for non-standard stats (like startingNitra, luck, etc)
+  return `+${totalBonus}`
 }
 </script>
 

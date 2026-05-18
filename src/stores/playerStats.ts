@@ -72,9 +72,9 @@ export const usePlayerStatsStore = defineStore('playerStats', () => {
         values.push(flatBonus)
       }
 
-      // Meta upgrades (both percentage and flat)
+      // Meta upgrades
       for (const metaUpgrade of metaUpgrades) {
-        if (metaUpgrade.stat === statId) {
+        if (metaUpgrade.statId === statId) {
           const level = metaStore.levels[metaUpgrade.id] ?? 0
           if (level > 0) {
             const bonus = metaUpgrade.bonusValues[level - 1] ?? 0

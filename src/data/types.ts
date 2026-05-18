@@ -132,9 +132,8 @@ export interface ClassMod {
 export interface MetaUpgrade {
   id: string
   name: string
-  stat: string  // Can be CharacterStats key or non-combat stat
+  statId: string  // Reference to a stat definition (will be StatId when fully migrated)
   maxLevel: number
-  bonusValues: number[]  // Array of cumulative bonus values for each level (1-12)
-  bonusType: 'percentage' | 'flat'
-  description?: string
+  bonusValues: number[]  // Array of bonus values for each level (1-12)
+  description?: string  // Optional override for display
 }

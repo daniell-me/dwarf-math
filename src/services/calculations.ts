@@ -1,5 +1,17 @@
 import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade, Stat } from '@/data/types'
 import { getUpgradeValue } from '@/utils/weaponFunctions'
+import { statDefinitions } from '@/data/statDefinitions'
+
+// Helper to check if a meta upgrade is multiplicative (percentage-based)
+function isMultiplicativeUpgrade(metaUpgrade: MetaUpgrade): boolean {
+  const stat = statDefinitions[metaUpgrade.statId]
+  // If stat definition exists, use its bucketing function
+  if (stat) {
+    return stat.bucketingFunction === 'multiplicative'
+  }
+  // For non-standard stats (startingNitra, luck, etc), default to additive/flat
+  return false
+}
 
 export function calculateDPS(
   dmg: number,
@@ -125,7 +137,7 @@ export function calculateCurrentStats(
 
       // Apply meta upgrade bonuses multiplicatively
       for (const metaUpgrade of metaUpgrades) {
-        if (metaUpgrade.stat === statKey && metaUpgrade.bonusType === 'percentage') {
+        if (metaUpgrade.statId === statKey && isMultiplicativeUpgrade(metaUpgrade)) {
           const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
           if (level > 0) {
             const bonus = metaUpgrade.bonusValues[level - 1] ?? 0
@@ -161,9 +173,9 @@ export function calculateCurrentStats(
     // Meta bucket = Meta Upgrades * Class Mod multipliers
     let metaMultiplier = 1.0
 
-    // Apply meta upgrades (percentage only)
+    // Apply meta upgrades (multiplicative only)
     for (const metaUpgrade of metaUpgrades) {
-      if (metaUpgrade.stat === statKey && metaUpgrade.bonusType === 'percentage') {
+      if (metaUpgrade.statId === statKey && isMultiplicativeUpgrade(metaUpgrade)) {
         const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
         if (level > 0) {
           const bonus = metaUpgrade.bonusValues[level - 1] ?? 0
@@ -187,12 +199,12 @@ export function calculateCurrentStats(
     currentStats[statKey] = calculatedValue as any
   }
 
-  // Handle flat bonuses from meta upgrades (like Getting Fit: +10 HP per level)
+  // Handle additive/flat bonuses from meta upgrades (like Getting Fit: +10 HP per level)
   for (const metaUpgrade of metaUpgrades) {
-    if (metaUpgrade.bonusType === 'flat') {
+    if (!isMultiplicativeUpgrade(metaUpgrade)) {
       const level = metaUpgradeLevels[metaUpgrade.id] ?? 0
-      if (level > 0 && metaUpgrade.stat in currentStats) {
-        const statKey = metaUpgrade.stat as keyof CharacterStats
+      if (level > 0 && metaUpgrade.statId in currentStats) {
+        const statKey = metaUpgrade.statId as keyof CharacterStats
         const currentValue = currentStats[statKey]
         if (typeof currentValue === 'number') {
           const bonus = metaUpgrade.bonusValues[level - 1] ?? 0
