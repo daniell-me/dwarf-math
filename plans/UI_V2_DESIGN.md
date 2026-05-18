@@ -1,3 +1,9 @@
+> **Superseded by [BUILD_LAB.md](BUILD_LAB.md) as of 2026-05-18.**
+> This document designed a mid-dive comparator UI. The project has pivoted
+> to a pre-dive build research tool with a fundamentally different shape.
+> Component primitives (upgrade table, modals, drawer) may still be useful;
+> the overall layout and "mid-dive scan" framing are not.
+
 # Dwarf Math - UI v2 Design Document
 
 ## Overview
