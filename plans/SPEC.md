@@ -1,3 +1,9 @@
+> **Superseded by [BUILD_LAB.md](BUILD_LAB.md) as of 2026-05-18.**
+> This document describes the project's original direction — a mid-dive
+> per-level upgrade comparator. The project has pivoted to a pre-dive
+> build research tool. Preserved for historical context; do not use as
+> a source of truth for new work.
+
 # Dwarf Math - Application Specification
 
 ## Overview
