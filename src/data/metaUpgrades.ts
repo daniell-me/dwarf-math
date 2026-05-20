@@ -27,8 +27,8 @@ export const metaUpgrades: MetaUpgrade[] = [
     id: 'upgraded-armor',
     name: 'Upgraded Armor',
     statId: 'armor',
-    maxLevel: 12,
-    bonusValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    maxLevel: 24,
+    bonusValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
     description: 'Damage reduction'
   },
   {
@@ -42,8 +42,8 @@ export const metaUpgrades: MetaUpgrade[] = [
     id: 'getting-fit',
     name: 'Getting Fit',
     statId: 'health',
-    maxLevel: 12,
-    bonusValues: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+    maxLevel: 24,
+    bonusValues: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180],
     description: 'Max HP'
   },
   {
@@ -58,8 +58,8 @@ export const metaUpgrades: MetaUpgrade[] = [
     id: 'pocket-magnets',
     name: 'Pocket Magnets',
     statId: 'pickupRadius',
-    maxLevel: 12,
-    bonusValues: [0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.24]
+    maxLevel: 24,
+    bonusValues: [0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14, 0.16, 0.18, 0.20, 0.22, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.30, 0.31, 0.32, 0.33, 0.34, 0.35, 0.36]
   },
   {
     id: 'more-juice',
@@ -88,8 +88,8 @@ export const metaUpgrades: MetaUpgrade[] = [
     id: 'nitra-cache',
     name: 'Nitra Cache',
     statId: 'startingNitra',
-    maxLevel: 12,
-    bonusValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    maxLevel: 24,
+    bonusValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
     description: 'Starting Nitra'
   },
   {
@@ -112,8 +112,8 @@ export const metaUpgrades: MetaUpgrade[] = [
     id: 'gold-cache',
     name: 'Gold Cache',
     statId: 'startingGold',
-    maxLevel: 12,
-    bonusValues: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24],
+    maxLevel: 24,
+    bonusValues: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48],
     description: 'Starting Gold'
   },
   {
@@ -127,8 +127,8 @@ export const metaUpgrades: MetaUpgrade[] = [
     id: 'me-lucky-charms',
     name: 'Me Lucky Charms',
     statId: 'luck',
-    maxLevel: 12,
-    bonusValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    maxLevel: 24,
+    bonusValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12.5, 13, 13.5, 14, 14.5, 15, 15.5, 16, 16.5, 17, 17.5, 18],
     description: 'Higher rarity upgrade chance'
   },
   {
@@ -136,7 +136,7 @@ export const metaUpgrades: MetaUpgrade[] = [
     name: 'Artifact Rerolls',
     statId: 'artifactRerolls',
     maxLevel: 12,
-    bonusValues: [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6],
+    bonusValues: [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6],
     description: 'Allows rerolling artifacts from Supply Pod'
   }
 ]

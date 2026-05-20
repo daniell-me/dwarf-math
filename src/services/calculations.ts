@@ -1,4 +1,5 @@
-import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade, Stat } from '@/data/types'
+import type { Upgrade, Rarity, CharacterStats, ClassMod, MetaUpgrade } from '@/data/types'
+import type { StatId } from '@/data/statDefinitions'
 import { getUpgradeValue } from '@/utils/weaponFunctions'
 import { statDefinitions } from '@/data/statDefinitions'
 
@@ -60,7 +61,7 @@ export function calculateDPSWithUpgrade(
   let modifiedReloadTime = baseReloadTimeWithCharStats
 
   switch (upgrade.stat) {
-    case 'dmg':
+    case 'damage':
       modifiedDmg = baseDmgWithCharStats * (1 + upgradeValue)
       break
     case 'fireRate':
@@ -146,9 +147,17 @@ export function calculateCurrentStats(
         }
       }
 
-      // Apply class mod bonuses multiplicatively
-      if (classMod?.statMultipliers?.[statKey] !== undefined) {
-        multiplier *= (1 + classMod.statMultipliers[statKey]!)
+      // Apply class mod bonuses multiplicatively (iterate effects array).
+      // NOTE: legacy path uses CharacterStats keys; new system uses StatId. The only
+      // mismatch is `range` (new) vs `weaponRange` (old) — class-mod range bonuses
+      // won't apply through this legacy path. Acceptable; calculations.ts is being
+      // phased out.
+      if (classMod) {
+        for (const eff of classMod.effects) {
+          if (eff.kind === 'stat' && (eff.stat as string) === statKey) {
+            multiplier *= (1 + eff.value)
+          }
+        }
       }
 
       // Apply gear bonuses multiplicatively
@@ -184,10 +193,13 @@ export function calculateCurrentStats(
       }
     }
 
-    // Apply class mod multipliers to meta bucket
-    if (classMod?.statMultipliers?.[statKey] !== undefined) {
-      const classModValue = classMod.statMultipliers[statKey]!
-      metaMultiplier *= (1 + classModValue)
+    // Apply class mod multipliers to meta bucket (iterate effects array)
+    if (classMod) {
+      for (const eff of classMod.effects) {
+        if (eff.kind === 'stat' && (eff.stat as string) === statKey) {
+          metaMultiplier *= (1 + eff.value)
+        }
+      }
     }
 
     // Percent gear bonuses also multiply
@@ -235,10 +247,10 @@ export function calculateDPSWithAllUpgrades(
   reloadTime: number,
   clipSize: number,
   characterStats: CharacterStats,
-  aggregatedUpgrades: Partial<Record<Stat, number>>
+  aggregatedUpgrades: Partial<Record<StatId, number>>
 ): number {
   // Apply mid-dive upgrade bucket (additive) to base stats
-  const midDiveDmgBonus = aggregatedUpgrades['dmg'] ?? 0
+  const midDiveDmgBonus = aggregatedUpgrades['damage'] ?? 0
   const midDiveFireRateBonus = aggregatedUpgrades['fireRate'] ?? 0
   const midDiveReloadSpeedBonus = aggregatedUpgrades['reloadSpeed'] ?? 0
 

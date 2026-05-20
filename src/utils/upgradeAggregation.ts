@@ -1,4 +1,5 @@
-import type { Weapon, Upgrade, Stat, WeaponTag } from '@/data/types'
+import type { Weapon, Upgrade, WeaponTag } from '@/data/types'
+import type { StatId } from '@/data/statDefinitions'
 import type { SelectedUpgrade } from '@/stores/selectedUpgrades'
 import { getUpgradeValue } from './weaponFunctions'
 
@@ -19,11 +20,11 @@ export function aggregateMidDiveUpgrades(
   selectedUpgrades: SelectedUpgrade[],
   globalUpgrades: Record<string, number>,
   allUpgrades: Upgrade[]
-): Partial<Record<Stat, number>> {
-  const aggregated: Partial<Record<Stat, number>> = {}
+): Partial<Record<StatId, number>> {
+  const aggregated: Partial<Record<StatId, number>> = {}
 
   // Helper to add bonus to aggregated totals
-  const addBonus = (stat: Stat, value: number) => {
+  const addBonus = (stat: StatId, value: number) => {
     aggregated[stat] = (aggregated[stat] ?? 0) + value
   }
 

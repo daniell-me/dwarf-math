@@ -25,5 +25,11 @@ export const classBaseStats: Record<Class, Partial<CharacterStats>> = {
     critChance: 0.05,
     critDamage: 1.5,
     miningSpeed: 0.20
+  },
+  [Class.demolisher]: {
+    // TODO: real numbers — placeholder so types compile after adding the class.
+    health: 130,
+    critChance: 0.05,
+    critDamage: 1.5
   }
 }

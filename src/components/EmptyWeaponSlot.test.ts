@@ -4,7 +4,7 @@ import EmptyWeaponSlot from './EmptyWeaponSlot.vue'
 import type { Weapon } from '@/data/types'
 import { WeaponTag, Class } from '@/data/types'
 
-const mockWeapons: Weapon[] = [
+const mockWeapons: any[] = [
   {
     id: 'weapon-1',
     name: 'Weapon One',

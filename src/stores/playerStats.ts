@@ -85,11 +85,10 @@ export const usePlayerStatsStore = defineStore('playerStats', () => {
         }
       }
 
-      // Class mod bonuses
-      if (classMod.statMultipliers?.[statId as keyof CharacterStats] !== undefined) {
-        const classModValue = classMod.statMultipliers[statId as keyof CharacterStats]!
-        if (classModValue !== 0) {
-          values.push(classModValue)
+      // Class mod bonuses — iterate effects, contribute matching stat values
+      for (const eff of classMod.effects) {
+        if (eff.kind === 'stat' && eff.stat === statId && eff.value !== 0) {
+          values.push(eff.value)
         }
       }
 

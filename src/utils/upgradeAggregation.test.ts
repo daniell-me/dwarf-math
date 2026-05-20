@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { aggregateMidDiveUpgrades, doesUpgradeApplyToWeapon } from './upgradeAggregation'
-import { Stat, WeaponTag, Class, UpgradeCategory } from '@/data/types'
+import { WeaponTag, Class, UpgradeCategory } from '@/data/types'
 import type { Weapon, Upgrade } from '@/data/types'
 import type { SelectedUpgrade } from '@/stores/selectedUpgrades'
 
@@ -8,29 +8,23 @@ describe('doesUpgradeApplyToWeapon', () => {
   const projectileWeapon: Weapon = {
     id: 'test-gun',
     name: 'Test Gun',
-    baseDmg: 50,
-    fireRate: 5,
-    clipSize: 10,
-    reloadTime: 2,
+    class: Class.scout,
     tags: [WeaponTag.projectile, WeaponTag.kinetic],
-    class: Class.scout
+    baseStats: { damage: 50, fireRate: 5, clipSize: 10, reloadTime: 2 }
   }
 
   const beamWeapon: Weapon = {
     id: 'test-beam',
     name: 'Test Beam',
-    baseDmg: 30,
-    fireRate: 10,
-    clipSize: 1,
-    reloadTime: 4,
+    class: Class.driller,
     tags: [WeaponTag.beam, WeaponTag.fire],
-    class: Class.driller
+    baseStats: { damage: 30, fireRate: 10, clipSize: 1, reloadTime: 4 }
   }
 
   it('should return true for "all" tag upgrades', () => {
     const upgrade: Upgrade = {
       name: 'Bigger Cogs',
-      stat: Stat.dmg,
+      stat: 'damage',
       tags: [WeaponTag.all],
       category: UpgradeCategory.weapon,
       values: [0.10, 0.15, 0.25, 0.35, 0.50]
@@ -43,7 +37,7 @@ describe('doesUpgradeApplyToWeapon', () => {
   it('should return true when weapon has matching tag', () => {
     const projectileUpgrade: Upgrade = {
       name: 'Tighten Springs',
-      stat: Stat.fireRate,
+      stat: 'fireRate',
       tags: [WeaponTag.projectile],
       category: UpgradeCategory.weapon,
       values: [0.10, 0.15, 0.25, 0.35, 0.50]
@@ -56,8 +50,8 @@ describe('doesUpgradeApplyToWeapon', () => {
   it('should return true when weapon has any of the upgrade tags', () => {
     const multiTagUpgrade: Upgrade = {
       name: 'Tweak Potency',
-      stat: Stat.statusPotency,
-      tags: [WeaponTag.acid, WeaponTag.electrical, WeaponTag.fire],
+      stat: 'potency',
+      tags: [WeaponTag.acid, WeaponTag.electric, WeaponTag.fire],
       category: UpgradeCategory.weapon,
       values: [0.15, 0.25, 0.35, null, null]
     }
@@ -69,7 +63,7 @@ describe('doesUpgradeApplyToWeapon', () => {
   it('should return false for player-only upgrades (empty tags)', () => {
     const playerUpgrade: Upgrade = {
       name: 'Extra Rations',
-      stat: Stat.maxHealth,
+      stat: 'health',
       tags: [],
       category: UpgradeCategory.player,
       values: [10, 20, 35, 50, 70]
@@ -84,32 +78,29 @@ describe('aggregateMidDiveUpgrades', () => {
   const testWeapon: Weapon = {
     id: 'zhukov',
     name: 'Zhukov NUK17',
-    baseDmg: 22,
-    fireRate: 6.67,
-    clipSize: 20,
-    reloadTime: 1,
+    class: Class.scout,
     tags: [WeaponTag.kinetic, WeaponTag.projectile],
-    class: Class.scout
+    baseStats: { damage: 22, fireRate: 6.67, clipSize: 20, reloadTime: 1 }
   }
 
   const allUpgrades: Upgrade[] = [
     {
       name: 'Bigger Cogs',
-      stat: Stat.dmg,
+      stat: 'damage',
       tags: [WeaponTag.all],
       category: UpgradeCategory.weapon,
       values: [0.10, 0.15, 0.25, 0.35, 0.50]
     },
     {
       name: 'Tighten Springs',
-      stat: Stat.fireRate,
+      stat: 'fireRate',
       tags: [WeaponTag.projectile],
       category: UpgradeCategory.weapon,
       values: [0.10, 0.15, 0.25, 0.35, 0.50]
     },
     {
       name: 'Loosen Bolts',
-      stat: Stat.reloadSpeed,
+      stat: 'reloadSpeed',
       tags: [WeaponTag.all],
       category: UpgradeCategory.weapon,
       values: [0.10, 0.15, 0.25, 0.35, 0.50]
@@ -124,7 +115,7 @@ describe('aggregateMidDiveUpgrades', () => {
 
     const result = aggregateMidDiveUpgrades('zhukov', testWeapon, selectedUpgrades, {}, allUpgrades)
 
-    expect(result[Stat.dmg]).toBe(0.25) // 0.10 + 0.15
+    expect(result['damage']).toBe(0.25) // 0.10 + 0.15
   })
 
   it('should aggregate global upgrades only', () => {
@@ -135,8 +126,8 @@ describe('aggregateMidDiveUpgrades', () => {
 
     const result = aggregateMidDiveUpgrades('zhukov', testWeapon, [], globalUpgrades, allUpgrades)
 
-    expect(result[Stat.dmg]).toBe(0.20) // 2 * 0.10
-    expect(result[Stat.fireRate]).toBe(0.25) // 1 * 0.25
+    expect(result['damage']).toBe(0.20) // 2 * 0.10
+    expect(result['fireRate']).toBe(0.25) // 1 * 0.25
   })
 
   it('should aggregate both weapon-specific and global upgrades', () => {
@@ -151,8 +142,8 @@ describe('aggregateMidDiveUpgrades', () => {
 
     const result = aggregateMidDiveUpgrades('zhukov', testWeapon, selectedUpgrades, globalUpgrades, allUpgrades)
 
-    expect(result[Stat.dmg]).toBe(0.25) // 0.10 + 0.15
-    expect(result[Stat.fireRate]).toBe(0.20) // 2 * 0.10
+    expect(result['damage']).toBe(0.25) // 0.10 + 0.15
+    expect(result['fireRate']).toBe(0.20) // 2 * 0.10
   })
 
   it('should only include upgrades for the specified weapon', () => {
@@ -163,19 +154,16 @@ describe('aggregateMidDiveUpgrades', () => {
 
     const result = aggregateMidDiveUpgrades('zhukov', testWeapon, selectedUpgrades, {}, allUpgrades)
 
-    expect(result[Stat.dmg]).toBe(0.10) // Only zhukov's upgrade
+    expect(result['damage']).toBe(0.10) // Only zhukov's upgrade
   })
 
   it('should ignore global upgrades that do not apply to weapon', () => {
     const beamWeapon: Weapon = {
       id: 'flamethrower',
       name: 'CRSPR Flamethrower',
-      baseDmg: 28,
-      fireRate: 5,
-      clipSize: 1,
-      reloadTime: 6,
+      class: Class.driller,
       tags: [WeaponTag.fire, WeaponTag.beam],
-      class: Class.driller
+      baseStats: { damage: 28, fireRate: 5, clipSize: 1, reloadTime: 6 }
     }
 
     const globalUpgrades = {
@@ -184,7 +172,7 @@ describe('aggregateMidDiveUpgrades', () => {
 
     const result = aggregateMidDiveUpgrades('flamethrower', beamWeapon, [], globalUpgrades, allUpgrades)
 
-    expect(result[Stat.fireRate]).toBeUndefined()
+    expect(result['fireRate']).toBeUndefined()
   })
 
   it('should handle empty upgrades', () => {
@@ -202,6 +190,6 @@ describe('aggregateMidDiveUpgrades', () => {
 
     const result = aggregateMidDiveUpgrades('zhukov', testWeapon, selectedUpgrades, {}, allUpgrades)
 
-    expect(result[Stat.dmg]).toBe(0.45) // 0.10 + 0.10 + 0.25
+    expect(result['damage']).toBe(0.45) // 0.10 + 0.10 + 0.25
   })
 })

@@ -1,52 +1,37 @@
-export const Stat = {
-  dmg: 'dmg',
-  reloadSpeed: 'reloadSpeed',
-  fireRate: 'fireRate',
-  piercing: 'piercing',
-  range: 'range',
-  droneCount: 'droneCount',
-  beamCount: 'beamCount',
-  weaponLevel: 'weaponLevel',
-  statusPotency: 'statusPotency',
-  explosionRadius: 'explosionRadius',
-  // Player stats
-  maxHealth: 'maxHealth',
-  armor: 'armor',
-  critChance: 'critChance',
-  critDamage: 'critDamage',
-  miningSpeed: 'miningSpeed',
-  moveSpeed: 'moveSpeed',
-  dodgeChance: 'dodgeChance',
-  pickupRadius: 'pickupRadius',
-  xpGain: 'xpGain',
-  reviveSpeed: 'reviveSpeed',
-  luck: 'luck',
-  statusDamage: 'statusDamage',
-  // Weapon lifetime
-  lifetime: 'lifetime'
-} as const
-
-export type Stat = typeof Stat[keyof typeof Stat]
+import type { StatId } from './statDefinitions'
 
 export const WeaponTag = {
-  projectile: 'projectile',
+  // Damage types
   kinetic: 'kinetic',
-  all: 'all',
-  beam: 'beam',
-  drone: 'drone',
   acid: 'acid',
-  electrical: 'electrical',
+  electric: 'electric',
   fire: 'fire',
   cold: 'cold',
   plasma: 'plasma',
-  explosive: 'explosive',
-  throwable: 'throwable',
-  turret: 'turret',
+  // Weight classes
   light: 'light',
   medium: 'medium',
   heavy: 'heavy',
+  // Weapon types
+  projectile: 'projectile',
+  beam: 'beam',
+  drone: 'drone',
+  turret: 'turret',
   construct: 'construct',
-  lasting: 'lasting'
+  throwable: 'throwable',
+  explosive: 'explosive',
+  groundzone: 'groundzone',
+  // Firing styles
+  precise: 'precise',
+  spray: 'spray',
+  area: 'area',
+  lasting: 'lasting',
+  // Role
+  sidearm: 'sidearm',
+  // Added by "The Favourite" overclock (granted via tagChange, deferred)
+  favourite: 'favourite',
+  // Generic
+  all: 'all'
 } as const
 
 export type WeaponTag = typeof WeaponTag[keyof typeof WeaponTag]
@@ -63,15 +48,45 @@ export type Rarity = typeof Rarity[keyof typeof Rarity]
 
 export const rarities: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary']
 
+export type Targeting = 'closest' | 'highestHp' | 'random' | 'lowestHp' | 'moveDirection'
+
+export type FiringPattern =
+  | { type: 'burst', roundsPerVolley: number }
+
+// Effects: shared vocabulary for what an overclock, mid-dive upgrade, or
+// class-mod bonus actually does. Modeling depth is leveled — pure stat /
+// tag / targeting changes are fully modeled; complex mechanics drop into
+// `custom` with a description until the sim needs to interpret them.
+export type Effect =
+  | { kind: 'stat'; stat: StatId; value: number }
+  | { kind: 'taggedStat'; stat: StatId; value: number; tags: WeaponTag[] }  // applies only to weapons with ANY of these tags
+  | { kind: 'tagChange'; remove?: WeaponTag[]; add?: WeaponTag[] }
+  | { kind: 'targeting'; targeting: Targeting }
+  | { kind: 'crossWeapon'; effects: Effect[] }   // applies to OTHER weapons
+  | { kind: 'custom'; description: string }       // catchall for unmodeled mechanics
+
+export type OverclockTier = 'balanced' | 'unstable'
+
+export interface Overclock {
+  id: string
+  name: string
+  tier: OverclockTier
+  weaponIds: string[]   // weapons whose pools include this OC (most are 1, some shared)
+  effects: Effect[]
+  description?: string  // human-readable from the wiki
+}
+
 export interface Weapon {
   id: string
   name: string
-  baseDmg: number
-  fireRate: number
-  clipSize: number
-  reloadTime: number
-  tags: WeaponTag[]
   class: Class
+  tags: WeaponTag[]
+  baseStats: Partial<Record<StatId, number>>
+  targeting?: Targeting
+  knockback?: boolean
+  firingPattern?: FiringPattern
+  // groundzone shape deferred — see PLAN.md notes
+  // overclocks deferred — own pass
 }
 
 export interface CharacterStats {
@@ -104,10 +119,11 @@ export type UpgradeCategory = typeof UpgradeCategory[keyof typeof UpgradeCategor
 
 export interface Upgrade {
   name: string
-  stat: Stat
+  stat: StatId
   tags: WeaponTag[]
-  values: Partial<Record<Rarity, number>> | (number | null)[]  // Either old format or new array format [common, uncommon, rare, epic, legendary]
-  category?: UpgradeCategory  // Optional for backwards compatibility
+  // [common, uncommon, rare, epic, legendary] — null for unavailable rarities
+  values: (number | null)[] | Partial<Record<Rarity, number>>
+  category?: UpgradeCategory
   description?: string
 }
 
@@ -116,24 +132,41 @@ export const Class = {
   gunner: 'Gunner',
   engineer: 'Engineer',
   driller: 'Driller',
+  demolisher: 'Demolisher',
 } as const
 
 export type Class = typeof Class[keyof typeof Class]
+
+export type ArtifactRarity = 'rare' | 'epic'
+
+export interface Artifact {
+  id: string
+  name: string
+  rarity: ArtifactRarity
+  effects: Effect[]
+  description: string  // verbatim wiki effect text
+}
 
 export interface ClassMod {
   name: string
   class: Class
   startingWeaponId: string
   availableWeaponTags: WeaponTag[]
-  statMultipliers?: Partial<CharacterStats>
-  conditionalEffects?: string[]
+  effects: Effect[]
 }
+
+// Account-level meta-progression IDs. Not stats in the StatId sense (no bucketing) —
+// they're initial-state inputs to a dive (starting resources, reroll count). Kept
+// alongside StatId in MetaUpgrade because the UI treats all meta-progression
+// entries uniformly; downstream consumers (DPS calc, sim) decide which IDs are
+// relevant for each bucket.
+export type AccountStatId = 'startingNitra' | 'startingGold' | 'artifactRerolls'
 
 export interface MetaUpgrade {
   id: string
   name: string
-  statId: string  // Reference to a stat definition (will be StatId when fully migrated)
+  statId: StatId | AccountStatId
   maxLevel: number
-  bonusValues: number[]  // Array of bonus values for each level (1-12)
-  description?: string  // Optional override for display
+  bonusValues: number[]  // one entry per level (1..maxLevel)
+  description?: string
 }

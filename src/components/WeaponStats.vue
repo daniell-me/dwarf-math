@@ -37,19 +37,19 @@ const emit = defineEmits<Emits>()
     <div class="base-stats">
       <div class="stat-row">
         <span class="stat-label">Base Damage:</span>
-        <span class="stat-value">{{ weapon.baseDmg }}</span>
+        <span class="stat-value">{{ (weapon as any).baseDmg }}</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">Fire Rate:</span>
-        <span class="stat-value">{{ weapon.fireRate }}/s</span>
+        <span class="stat-value">{{ (weapon as any).fireRate }}/s</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">Clip Size:</span>
-        <span class="stat-value">{{ weapon.clipSize }}</span>
+        <span class="stat-value">{{ (weapon as any).clipSize }}</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">Reload Time:</span>
-        <span class="stat-value">{{ weapon.reloadTime }}s</span>
+        <span class="stat-value">{{ (weapon as any).reloadTime }}s</span>
       </div>
     </div>
   </div>

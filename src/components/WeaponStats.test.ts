@@ -4,7 +4,7 @@ import WeaponStats from './WeaponStats.vue'
 import type { Weapon } from '@/data/types'
 import { WeaponTag, Class } from '@/data/types'
 
-const mockWeapon: Weapon = {
+const mockWeapon: any = {
   id: 'test-weapon',
   name: 'Test Weapon',
   baseDmg: 100,

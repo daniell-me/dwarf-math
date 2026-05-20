@@ -3,10 +3,10 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import UpgradeTable from './UpgradeTable.vue'
 import type { Weapon, Upgrade, CharacterStats } from '@/data/types'
-import { WeaponTag, Class, Stat, Rarity } from '@/data/types'
+import { WeaponTag, Class, Rarity } from '@/data/types'
 import { getUpgradeValue } from '@/utils/weaponFunctions'
 
-const mockWeapon: Weapon = {
+const mockWeapon: any = {
   id: 'test-weapon',
   name: 'Test Weapon',
   baseDmg: 100,
@@ -20,7 +20,7 @@ const mockWeapon: Weapon = {
 const mockUpgrades: Upgrade[] = [
   {
     name: 'Damage Boost',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.all],
     values: {
       [Rarity.common]: 0.10,
@@ -32,7 +32,7 @@ const mockUpgrades: Upgrade[] = [
   },
   {
     name: 'Fire Rate Boost',
-    stat: Stat.fireRate,
+    stat: 'fireRate',
     tags: [WeaponTag.all],
     values: {
       [Rarity.common]: 0.05,
