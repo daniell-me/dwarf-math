@@ -1,41 +1,25 @@
 import type { Upgrade } from './types'
-import { Stat, WeaponTag, UpgradeCategory } from './types'
+import { WeaponTag, UpgradeCategory } from './types'
 
 /**
- * UPGRADE STRUCTURE GUIDE
+ * UPGRADE STRUCTURE
  *
- * All upgrades use a unified structure with the following properties:
- *
- * - name: Display name of the upgrade
- * - stat: The stat this upgrade affects (from Stat enum)
- * - tags: Array of weapon tags this upgrade applies to (e.g., [WeaponTag.all], [WeaponTag.beam])
- * - category: One of three types:
- *     - UpgradeCategory.weapon: Mid-dive upgrades that increase weapon level
- *     - UpgradeCategory.tag: Mid-dive upgrades that affect weapons but don't level them
- *     - UpgradeCategory.player: Mid-dive upgrades for non-combat/utility stats
- * - values: Array of 5 numbers (or null) representing [common, uncommon, rare, epic, legendary]
- *     - Use null for unavailable rarities
- *     - Percentages stored as decimals (0.10 = 10%, 0.50 = 50%)
- *     - Flat values stored as-is (e.g., 2 for +2 weapon levels, 12 for +12 armor)
- * - description (optional): Human-readable description of what the upgrade does
- *
- * Example:
- * {
- *   name: 'Bigger Cogs',
- *   stat: Stat.dmg,
- *   tags: [WeaponTag.all],
- *   category: UpgradeCategory.weapon,
- *   values: [0.10, 0.15, 0.25, 0.35, 0.50],  // 10%, 15%, 25%, 35%, 50%
- *   description: 'Increases damage of all weapons'
- * }
+ * - name: Display name
+ * - stat: StatId from statDefinitions
+ * - tags: weapon tags this upgrade applies to (e.g. [WeaponTag.all], [WeaponTag.beam])
+ * - category:
+ *     - weapon: mid-dive upgrades that increase weapon level
+ *     - tag:    mid-dive upgrades that affect weapons but don't level them
+ *     - player: mid-dive upgrades for non-combat/utility stats
+ * - values: 5 entries [common, uncommon, rare, epic, legendary]; null = unavailable.
+ *     Percentages stored as decimals (0.10 = 10%). Flat values stored as-is.
  */
 
-// All Upgrades - Consolidated list of all mid-dive upgrades
 export const allUpgrades: Upgrade[] = [
-  // ===== WEAPON UPGRADES - Mid-dive upgrades that increase weapon level =====
+  // ===== WEAPON UPGRADES — Mid-dive upgrades that increase weapon level =====
   {
     name: 'Add Punch',
-    stat: Stat.piercing,
+    stat: 'piercing',
     tags: [WeaponTag.projectile],
     category: UpgradeCategory.weapon,
     values: [null, null, 0.25, 0.50, null],
@@ -43,7 +27,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.all],
     category: UpgradeCategory.weapon,
     values: [0.10, 0.15, 0.25, 0.35, 0.50],
@@ -51,7 +35,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Loosen Bolts',
-    stat: Stat.reloadSpeed,
+    stat: 'reloadSpeed',
     tags: [WeaponTag.all],
     category: UpgradeCategory.weapon,
     values: [0.10, 0.15, 0.25, 0.35, 0.50],
@@ -59,7 +43,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'More Drones!',
-    stat: Stat.droneCount,
+    stat: 'droneCount',
     tags: [WeaponTag.drone],
     category: UpgradeCategory.weapon,
     values: [null, null, null, null, 1],
@@ -67,7 +51,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Open Valves',
-    stat: Stat.range,
+    stat: 'range',
     tags: [WeaponTag.beam],
     category: UpgradeCategory.weapon,
     values: [null, null, 0.10, 0.15, 0.25],
@@ -75,7 +59,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Paint Job',
-    stat: Stat.weaponLevel,
+    stat: 'weaponLevel',
     tags: [WeaponTag.all],
     category: UpgradeCategory.weapon,
     values: [null, null, 2, 3, null],
@@ -83,7 +67,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Split Nozzles',
-    stat: Stat.beamCount,
+    stat: 'beamCount',
     tags: [WeaponTag.beam],
     category: UpgradeCategory.weapon,
     values: [null, null, null, null, 1],
@@ -91,7 +75,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Tighten Springs',
-    stat: Stat.fireRate,
+    stat: 'fireRate',
     tags: [WeaponTag.projectile],
     category: UpgradeCategory.weapon,
     values: [0.10, 0.15, 0.25, 0.35, 0.50],
@@ -99,17 +83,17 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Tweak Potency',
-    stat: Stat.statusPotency,
-    tags: [WeaponTag.acid, WeaponTag.electrical, WeaponTag.fire],
+    stat: 'potency',
+    tags: [WeaponTag.acid, WeaponTag.electric, WeaponTag.fire],
     category: UpgradeCategory.weapon,
     values: [null, 0.15, 0.25, 0.35, null],
-    description: 'Increases status potency of all [ACID], [ELECTRICAL], and [FIRE] weapons'
+    description: 'Increases status potency of all [ACID], [ELECTRIC], and [FIRE] weapons'
   },
 
-  // ===== TAG UPGRADES - Tag Mastery and Weapon-affecting Player Stats =====
+  // ===== TAG UPGRADES — Tag Mastery and Weapon-affecting Player Stats =====
   {
     name: 'Apply Dwarf Tape',
-    stat: Stat.lifetime,
+    stat: 'lifetime',
     tags: [WeaponTag.beam],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.20, 0.30, 0.40],
@@ -117,7 +101,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Apply Dwarf Tape',
-    stat: Stat.lifetime,
+    stat: 'lifetime',
     tags: [WeaponTag.lasting],
     category: UpgradeCategory.tag,
     values: [null, null, 0.10, 0.15, 0.20],
@@ -125,7 +109,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Apply Dwarf Tape',
-    stat: Stat.lifetime,
+    stat: 'lifetime',
     tags: [WeaponTag.drone],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.20, 0.30, 0.40],
@@ -133,7 +117,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.acid],
     category: UpgradeCategory.tag,
     values: [null, 0.07, 0.10, 0.15, 0.20],
@@ -141,7 +125,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.statusPotency,
+    stat: 'potency',
     tags: [WeaponTag.acid],
     category: UpgradeCategory.tag,
     values: [null, 0.03, 0.05, 0.08, 0.10],
@@ -149,7 +133,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.beam],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -157,7 +141,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.cold],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -165,39 +149,23 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
-    tags: [WeaponTag.construct],
-    category: UpgradeCategory.tag,
-    values: [null, 0.10, 0.15, 0.20, 0.30],
-    description: 'Increases damage of all [CONSTRUCT] weapons'
-  },
-  {
-    name: 'Bigger Cogs',
-    stat: Stat.dmg,
-    tags: [WeaponTag.electrical],
+    stat: 'damage',
+    tags: [WeaponTag.electric],
     category: UpgradeCategory.tag,
     values: [null, 0.07, 0.10, 0.15, 0.20],
-    description: 'Increases damage of all [ELECTRICAL] weapons'
+    description: 'Increases damage of all [ELECTRIC] weapons'
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.statusPotency,
-    tags: [WeaponTag.electrical],
+    stat: 'potency',
+    tags: [WeaponTag.electric],
     category: UpgradeCategory.tag,
     values: [null, 0.03, 0.05, 0.08, 0.10],
-    description: 'Increases potency of all [ELECTRICAL] weapons'
+    description: 'Increases potency of all [ELECTRIC] weapons'
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
-    tags: [WeaponTag.explosive],
-    category: UpgradeCategory.tag,
-    values: [null, 0.10, 0.15, 0.20, 0.30],
-    description: 'Increases damage of all [EXPLOSIVE] weapons'
-  },
-  {
-    name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.fire],
     category: UpgradeCategory.tag,
     values: [null, 0.07, 0.10, 0.15, 0.20],
@@ -205,7 +173,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.statusPotency,
+    stat: 'potency',
     tags: [WeaponTag.fire],
     category: UpgradeCategory.tag,
     values: [null, 0.03, 0.05, 0.08, 0.10],
@@ -213,7 +181,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.kinetic],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -221,15 +189,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
-    tags: [WeaponTag.plasma],
-    category: UpgradeCategory.tag,
-    values: [null, 0.10, 0.15, 0.20, 0.30],
-    description: 'Increases damage of all [PLASMA] weapons'
-  },
-  {
-    name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.drone],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -237,7 +197,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.projectile],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -245,15 +205,47 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Bigger Cogs',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.throwable],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
     description: 'Increases damage of all [THROWABLE] weapons'
   },
   {
+    name: 'Bigger Cogs',
+    stat: 'damage',
+    tags: [WeaponTag.sidearm],
+    category: UpgradeCategory.tag,
+    values: [null, null, 0.30, 0.40, 0.60],
+    description: 'Increases damage of all [SIDEARM] weapons'
+  },
+  {
+    name: 'Bigger Cogs',
+    stat: 'damage',
+    tags: [WeaponTag.groundzone],
+    category: UpgradeCategory.tag,
+    values: [null, null, null, 0.30, null],
+    description: 'Increases damage of all [GROUNDZONE] weapons'
+  },
+  {
+    name: 'Bigger Cogs',
+    stat: 'damage',
+    tags: [WeaponTag.favourite],
+    category: UpgradeCategory.tag,
+    values: [null, null, 0.20, 0.30, null],
+    description: 'Increases damage of all [FAVOURITE] weapons'
+  },
+  {
+    name: 'Overflow',
+    stat: 'groundzoneRadius',
+    tags: [WeaponTag.groundzone],
+    category: UpgradeCategory.tag,
+    values: [null, null, null, 0.20, 0.30],
+    description: 'Increases groundzone radius of all [GROUNDZONE] weapons'
+  },
+  {
     name: 'Compacted Powder',
-    stat: Stat.explosionRadius,
+    stat: 'explosionRadius',
     tags: [WeaponTag.explosive],
     category: UpgradeCategory.tag,
     values: [null, null, 0.15, 0.20, 0.30],
@@ -261,7 +253,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Loosen Bolts',
-    stat: Stat.reloadSpeed,
+    stat: 'reloadSpeed',
     tags: [WeaponTag.beam],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -269,7 +261,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Loosen Bolts',
-    stat: Stat.reloadSpeed,
+    stat: 'reloadSpeed',
     tags: [WeaponTag.light],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -277,7 +269,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Loosen Bolts',
-    stat: Stat.reloadSpeed,
+    stat: 'reloadSpeed',
     tags: [WeaponTag.medium],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -285,7 +277,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Loosen Bolts',
-    stat: Stat.reloadSpeed,
+    stat: 'reloadSpeed',
     tags: [WeaponTag.heavy],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -293,7 +285,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Loosen Bolts',
-    stat: Stat.reloadSpeed,
+    stat: 'reloadSpeed',
     tags: [WeaponTag.throwable],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.15, 0.20, 0.30],
@@ -303,7 +295,7 @@ export const allUpgrades: Upgrade[] = [
   // Weapon-affecting player stat upgrades (apply to all weapons)
   {
     name: 'Body Shots',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.all],
     category: UpgradeCategory.tag,
     values: [null, 0.05, 0.10, 0.15, 0.20],
@@ -311,7 +303,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Careful Aim',
-    stat: Stat.critChance,
+    stat: 'critChance',
     tags: [WeaponTag.all],
     category: UpgradeCategory.tag,
     values: [0.03, 0.06, 0.09, 0.12, 0.15],
@@ -319,7 +311,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Fast Hands',
-    stat: Stat.reloadSpeed,
+    stat: 'reloadSpeed',
     tags: [WeaponTag.all],
     category: UpgradeCategory.tag,
     values: [0.03, 0.06, 0.09, 0.12, 0.18],
@@ -327,7 +319,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Open Valves',
-    stat: Stat.range,
+    stat: 'range',
     tags: [WeaponTag.beam],
     category: UpgradeCategory.tag,
     values: [null, null, 0.10, 0.15, 0.25],
@@ -335,24 +327,33 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Tighten Springs',
-    stat: Stat.fireRate,
+    stat: 'fireRate',
     tags: [WeaponTag.projectile],
     category: UpgradeCategory.tag,
     values: [null, 0.10, 0.20, 0.30, 0.40],
     description: 'Increases fire rate of all [PROJECTILE] weapons'
   },
   {
+    name: 'Tighten Springs',
+    stat: 'fireRate',
+    tags: [WeaponTag.spray],
+    category: UpgradeCategory.tag,
+    values: [null, null, null, 0.40, 0.50],
+    description: 'Increases fire rate of all [SPRAY] weapons'
+  },
+  {
     name: 'Up the Voltage',
-    stat: Stat.critChance,
-    tags: [WeaponTag.electrical],
+    stat: 'critChance',
+    tags: [WeaponTag.electric],
     category: UpgradeCategory.tag,
     values: [null, null, 0.12, 0.18, null],
-    description: 'Increase all critical chance of all [ELECTRICAL] weapons'
+    description: 'Increase all critical chance of all [ELECTRIC] weapons'
   },
-  // ===== PLAYER UPGRADES - Non-combat and Utility Stats =====
+
+  // ===== PLAYER UPGRADES — Non-combat and Utility Stats =====
   {
     name: 'Dwarven Heritage',
-    stat: Stat.miningSpeed,
+    stat: 'miningSpeed',
     tags: [],
     category: UpgradeCategory.player,
     values: [null, 0.05, 0.10, 0.15, 0.25],
@@ -360,7 +361,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Extra Padding',
-    stat: Stat.armor,
+    stat: 'armor',
     tags: [],
     category: UpgradeCategory.player,
     values: [null, 3, 6, 9, 12],
@@ -368,15 +369,15 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Extra Rations',
-    stat: Stat.maxHealth,
+    stat: 'health',
     tags: [],
     category: UpgradeCategory.player,
-    values: [10, 20, 35, 50, 70],
+    values: [15, 30, 45, 60, 80],
     description: 'Increases max HP'
   },
   {
     name: 'Fast Little Legs',
-    stat: Stat.moveSpeed,
+    stat: 'moveSpeed',
     tags: [],
     category: UpgradeCategory.player,
     values: [0.02, 0.04, 0.06, 0.09, 0.12],
@@ -384,7 +385,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Getting Lucky',
-    stat: Stat.luck,
+    stat: 'luck',
     tags: [],
     category: UpgradeCategory.player,
     values: [null, null, 5, 10, null],
@@ -392,7 +393,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Learn on the Job',
-    stat: Stat.xpGain,
+    stat: 'xpGain',
     tags: [],
     category: UpgradeCategory.player,
     values: [null, null, 0.10, 0.15, 0.20],
@@ -400,7 +401,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Mind Blowing',
-    stat: Stat.critDamage,
+    stat: 'critDamage',
     tags: [],
     category: UpgradeCategory.player,
     values: [0.05, 0.10, 0.15, 0.25, 0.50],
@@ -408,7 +409,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Pocket Magnets',
-    stat: Stat.pickupRadius,
+    stat: 'pickupRadius',
     tags: [],
     category: UpgradeCategory.player,
     values: [null, 0.15, 0.30, 0.45, 0.60],
@@ -416,7 +417,7 @@ export const allUpgrades: Upgrade[] = [
   },
   {
     name: 'Offensive Chemistry',
-    stat: Stat.statusDamage,
+    stat: 'statusDamage',
     tags: [],
     category: UpgradeCategory.player,
     values: [null, 0.10, 0.20, 0.30, 0.40],
@@ -424,7 +425,7 @@ export const allUpgrades: Upgrade[] = [
   }
 ]
 
-// Convenience exports - filtered by category
+// Convenience exports — filtered by category
 export const weaponUpgrades = allUpgrades.filter(u => u.category === UpgradeCategory.weapon)
 export const tagUpgrades = allUpgrades.filter(u => u.category === UpgradeCategory.tag)
 export const playerUpgrades = allUpgrades.filter(u => u.category === UpgradeCategory.player)

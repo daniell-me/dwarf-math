@@ -38,14 +38,10 @@ export const useWeaponSlotStatsStore = defineStore('weaponSlotStats', () => {
     return emptyStats as WeaponSlotStats
   }
 
-  // Get base stats from a weapon
+  // Get base stats from a weapon — weapon.baseStats already speaks the StatId
+  // vocabulary, so the contribution is the weapon's record verbatim.
   function getWeaponBaseStats(weapon: Weapon): Partial<StatValues> {
-    return {
-      damage: weapon.baseDmg,
-      fireRate: weapon.fireRate,
-      reloadSpeed: 1 / weapon.reloadTime, // Convert reload time to reload speed
-      // Other weapon stats would go here
-    } as Partial<StatValues>
+    return weapon.baseStats as Partial<StatValues>
   }
 
   // Calculate stats for a weapon slot

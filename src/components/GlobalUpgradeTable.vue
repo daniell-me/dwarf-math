@@ -46,7 +46,7 @@ function formatUpgradeValue(upgrade: Upgrade, rarity: Rarity): string {
   }
 
   // Flat values (armor, max health)
-  if (upgrade.stat === 'armor' || upgrade.stat === 'maxHealth') {
+  if (upgrade.stat === 'armor' || upgrade.stat === 'health') {
     return `+${value}`
   }
 

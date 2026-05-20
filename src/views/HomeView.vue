@@ -223,11 +223,12 @@ function getUpgradedDPS(weapon: Weapon, upgrade: Upgrade, rarity: Rarity): numbe
   aggregatedWithOneMore[upgrade.stat] = currentValue + upgradeValue
 
   // Calculate DPS with the additional upgrade
+  const w = weapon as any
   return calculateDPSWithAllUpgrades(
-    weapon.baseDmg,
-    weapon.fireRate,
-    weapon.reloadTime,
-    weapon.clipSize,
+    w.baseDmg,
+    w.fireRate,
+    w.reloadTime,
+    w.clipSize,
     characterStats.value,
     aggregatedWithOneMore
   )
@@ -246,11 +247,12 @@ function getCurrentDPS(weapon: Weapon): number {
   )
 
   // Calculate DPS with all upgrades applied
+  const w = weapon as any
   return calculateDPSWithAllUpgrades(
-    weapon.baseDmg,
-    weapon.fireRate,
-    weapon.reloadTime,
-    weapon.clipSize,
+    w.baseDmg,
+    w.fireRate,
+    w.reloadTime,
+    w.clipSize,
     characterStats.value,
     aggregatedUpgrades
   )

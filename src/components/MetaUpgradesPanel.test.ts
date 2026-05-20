@@ -164,8 +164,8 @@ describe('MetaUpgradesPanel', () => {
     const wrapper = mount(MetaUpgradesPanel)
     const store = useMetaUpgradesStore()
 
-    // Find an upgrade with percentage bonus
-    const upgradeWithBonus = store.upgradeLevels.find(u => u.bonusValues.length > 0 && u.bonusType === 'percentage')
+    // Find an upgrade with bonus values
+    const upgradeWithBonus = store.upgradeLevels.find(u => u.bonusValues.length > 0)
     if (!upgradeWithBonus) return // Skip if no suitable upgrade found
 
     // Set it to level 1
@@ -175,9 +175,9 @@ describe('MetaUpgradesPanel', () => {
     const bonuses = wrapper.findAll('.upgrade-bonus')
     expect(bonuses.length).toBeGreaterThan(0)
 
-    // Check that the bonus is formatted correctly (e.g., "+4%")
+    // Check that the bonus is formatted correctly (e.g., "+4%" or "+0.020%")
     const bonusText = bonuses[0].text()
-    expect(bonusText).toMatch(/^\+\d+%?$/)
+    expect(bonusText).toMatch(/^\+[\d.]+%?$/)
   })
 
   it('should not display bonus when upgrade level is 0', () => {

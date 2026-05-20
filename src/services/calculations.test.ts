@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateDPS, calculateDPSWithUpgrade, calculateDPSWithAllUpgrades } from './calculations'
-import { Rarity, Stat, WeaponTag } from '@/data/types'
+import { Rarity, WeaponTag } from '@/data/types'
 import type { Upgrade, CharacterStats } from '@/data/types'
 
 describe('calculateDPS', () => {
@@ -25,7 +25,7 @@ describe('calculateDPSWithUpgrade', () => {
     // Expected DPS = 110
     const damageUpgrade: Upgrade = {
       name: 'Bigger Cogs',
-      stat: Stat.dmg,
+      stat: 'damage',
       tags: [WeaponTag.all],
       values: {
         [Rarity.common]: 0.10
@@ -39,7 +39,7 @@ describe('calculateDPSWithUpgrade', () => {
   it('should throw error when upgrade does not have value for rarity', () => {
     const damageUpgrade: Upgrade = {
       name: 'Bigger Cogs',
-      stat: Stat.dmg,
+      stat: 'damage',
       tags: [WeaponTag.all],
       values: {
         [Rarity.common]: 0.10
@@ -72,7 +72,7 @@ describe('calculateDPSWithAllUpgrades', () => {
     // Base: 100 damage, 1 shot per second, 1 second reload, 1 clip size
     // Mid-dive: +0.50 (50%) damage
     // Expected: 100 * 1.50 = 150 damage, DPS = 150
-    const aggregated = { [Stat.dmg]: 0.50 }
+    const aggregated = { ['damage']: 0.50 }
     const result = calculateDPSWithAllUpgrades(100, 1, 1, 1, baseCharacterStats, aggregated)
     expect(result).toBe(150)
   })
@@ -83,7 +83,7 @@ describe('calculateDPSWithAllUpgrades', () => {
     // Fire rate: 2 * 1.50 = 3 shots/s
     // Cycle time: 2 + (2-1)/3 = 2 + 0.333 = 2.333s
     // DPS = 100 * 2 / 2.333 = 85.7
-    const aggregated = { [Stat.fireRate]: 0.50 }
+    const aggregated = { ['fireRate']: 0.50 }
     const result = calculateDPSWithAllUpgrades(100, 2, 2, 2, baseCharacterStats, aggregated)
     expect(result).toBe(85.7)
   })
@@ -94,7 +94,7 @@ describe('calculateDPSWithAllUpgrades', () => {
     // Reload time: 2 * (1 - 0.50) = 1 second
     // Cycle time: 1 second
     // DPS = 100 * 1 / 1 = 100
-    const aggregated = { [Stat.reloadSpeed]: 0.50 }
+    const aggregated = { ['reloadSpeed']: 0.50 }
     const result = calculateDPSWithAllUpgrades(100, 1, 2, 1, baseCharacterStats, aggregated)
     expect(result).toBe(100)
   })
@@ -103,7 +103,7 @@ describe('calculateDPSWithAllUpgrades', () => {
     // Base: 100 damage, 1 shot per second, 1 second reload, 1 clip size
     // Mid-dive: +0.25 damage + +0.25 damage = +0.50 total
     // Expected: 100 * 1.50 = 150 damage, DPS = 150
-    const aggregated = { [Stat.dmg]: 0.50 } // Pre-summed
+    const aggregated = { ['damage']: 0.50 } // Pre-summed
     const result = calculateDPSWithAllUpgrades(100, 1, 1, 1, baseCharacterStats, aggregated)
     expect(result).toBe(150)
   })
@@ -117,7 +117,7 @@ describe('calculateDPSWithAllUpgrades', () => {
       ...baseCharacterStats,
       damage: 1.30
     }
-    const aggregated = { [Stat.dmg]: 0.50 }
+    const aggregated = { ['damage']: 0.50 }
     const result = calculateDPSWithAllUpgrades(100, 1, 1, 1, characterStats, aggregated)
     expect(result).toBe(195)
   })
@@ -132,7 +132,7 @@ describe('calculateDPSWithAllUpgrades', () => {
       ...baseCharacterStats,
       reloadSpeed: 2.0
     }
-    const aggregated = { [Stat.reloadSpeed]: 0.50 }
+    const aggregated = { ['reloadSpeed']: 0.50 }
     const result = calculateDPSWithAllUpgrades(100, 1, 4, 1, characterStats, aggregated)
     expect(result).toBe(100)
   })
@@ -181,9 +181,9 @@ describe('calculateDPSWithAllUpgrades', () => {
       critDamage: 2.5
     }
     const aggregated = {
-      [Stat.dmg]: 0.40,
-      [Stat.fireRate]: 0.20,
-      [Stat.reloadSpeed]: 0.30
+      ['damage']: 0.40,
+      ['fireRate']: 0.20,
+      ['reloadSpeed']: 0.30
     }
     const result = calculateDPSWithAllUpgrades(50, 5, 2, 10, characterStats, aggregated)
     expect(result).toBe(355.5)

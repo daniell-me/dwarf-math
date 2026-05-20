@@ -1,6 +1,9 @@
 /**
- * New stat system - parallel implementation
- * This will eventually replace the current CharacterStats interface
+ * Stat system - single source of truth for every stat the game models.
+ *
+ * StatId is the vocabulary shared by weapon base stats, upgrades, class mods,
+ * meta upgrades, gear, and overclocks. Aggregation: collect every contribution
+ * for a stat key, run them through that stat's bucketing function.
  */
 
 // Bucketing function type - combines multiple stat values
@@ -85,7 +88,7 @@ export const statDefinitions: Record<string, StatDefinition> = {
     bucketingFunction: 'multiplicative'
   },
 
-  // Damage stats
+  // Damage / firing
   damage: {
     id: 'damage',
     name: 'Damage',
@@ -104,6 +107,22 @@ export const statDefinitions: Record<string, StatDefinition> = {
     displayFormat: '+{value}%',
     bucketingFunction: 'multiplicative'
   },
+  reloadTime: {
+    // Lives in weapon baseStats. Upgrades target reloadSpeed; reloadTime is the
+    // base scalar the calc reduces by (1 + sum_of_reloadSpeed_bonuses).
+    id: 'reloadTime',
+    name: 'Reload Time',
+    displayFormat: '{value}s',
+    bucketingFunction: 'additive'
+  },
+  clipSize: {
+    id: 'clipSize',
+    name: 'Clip Size',
+    displayFormat: '+{value}%',
+    bucketingFunction: 'multiplicative'
+  },
+
+  // Combat
   critChance: {
     id: 'critChance',
     name: 'Critical Chance',
@@ -121,6 +140,25 @@ export const statDefinitions: Record<string, StatDefinition> = {
     name: 'Status Effect Damage',
     displayFormat: '+{value}%',
     bucketingFunction: 'multiplicative'
+  },
+  potency: {
+    id: 'potency',
+    name: 'Potency',
+    displayFormat: '+{value}%',
+    bucketingFunction: 'multiplicative'
+  },
+  piercing: {
+    id: 'piercing',
+    name: 'Piercing',
+    // Wiki "+100% Piercing" on a base-4 weapon doubles to 8 — multiplicative.
+    displayFormat: '+{value}%',
+    bucketingFunction: 'multiplicative'
+  },
+  projectilesPerShot: {
+    id: 'projectilesPerShot',
+    name: 'Projectiles',
+    displayFormat: '+{value}',
+    bucketingFunction: 'additive'
   },
 
   // Utility
@@ -142,16 +180,16 @@ export const statDefinitions: Record<string, StatDefinition> = {
     displayFormat: '+{value}%',
     bucketingFunction: 'multiplicative'
   },
-  lifetime: {
-    id: 'lifetime',
-    name: 'Lifetime',
-    displayFormat: '+{value}%',
-    bucketingFunction: 'multiplicative'
+  luck: {
+    id: 'luck',
+    name: 'Luck',
+    displayFormat: '+{value}',
+    bucketingFunction: 'additive'
   },
 
-  // Weapon-specific stats (not typically on player)
-  weaponRange: {
-    id: 'weaponRange',
+  // Weapon-shape-specific
+  range: {
+    id: 'range',
     name: 'Range',
     displayFormat: '+{value}%',
     bucketingFunction: 'multiplicative'
@@ -161,26 +199,80 @@ export const statDefinitions: Record<string, StatDefinition> = {
     name: 'Explosion Radius',
     displayFormat: '+{value}%',
     bucketingFunction: 'multiplicative'
+  },
+  groundzoneRadius: {
+    id: 'groundzoneRadius',
+    name: 'Groundzone Radius',
+    displayFormat: '+{value}%',
+    bucketingFunction: 'multiplicative'
+  },
+  lifetime: {
+    id: 'lifetime',
+    name: 'Lifetime',
+    displayFormat: '+{value}%',
+    bucketingFunction: 'multiplicative'
+  },
+  droneCount: {
+    id: 'droneCount',
+    name: 'Drones',
+    displayFormat: '+{value}',
+    bucketingFunction: 'additive'
+  },
+  beamCount: {
+    id: 'beamCount',
+    name: 'Beams',
+    displayFormat: '+{value}',
+    bucketingFunction: 'additive'
+  },
+  turretCap: {
+    id: 'turretCap',
+    name: 'Turret Cap',
+    displayFormat: '+{value}',
+    bucketingFunction: 'additive'
+  },
+  weaponLevel: {
+    id: 'weaponLevel',
+    name: 'Weapon Level',
+    displayFormat: '+{value}',
+    bucketingFunction: 'additive'
   }
 }
 
 // Helper to get all stat IDs in a specific order
 export const orderedStatIds = [
+  // Player survivability
   'health',
   'lifeRegen',
   'armor',
   'dodgeChance',
   'moveSpeed',
+  // Weapon damage/firing
   'damage',
   'fireRate',
   'reloadSpeed',
+  'reloadTime',
+  'clipSize',
+  // Combat
   'critChance',
   'critDamage',
   'statusDamage',
+  'potency',
+  'piercing',
+  'projectilesPerShot',
+  // Utility
   'pickupRadius',
   'xpGain',
   'miningSpeed',
-  'lifetime'
+  'luck',
+  // Weapon-shape-specific
+  'range',
+  'explosionRadius',
+  'groundzoneRadius',
+  'lifetime',
+  'droneCount',
+  'beamCount',
+  'turretCap',
+  'weaponLevel'
 ] as const
 
 export type StatId = typeof orderedStatIds[number]

@@ -3,9 +3,9 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import WeaponSection from './WeaponSection.vue'
 import type { Weapon, Upgrade, CharacterStats } from '@/data/types'
-import { WeaponTag, Class, Stat, Rarity } from '@/data/types'
+import { WeaponTag, Class, Rarity } from '@/data/types'
 
-const mockWeapon: Weapon = {
+const mockWeapon: any = {
   id: 'test-weapon',
   name: 'Test Weapon',
   baseDmg: 100,
@@ -19,7 +19,7 @@ const mockWeapon: Weapon = {
 const mockUpgrades: Upgrade[] = [
   {
     name: 'Damage Boost',
-    stat: Stat.dmg,
+    stat: 'damage',
     tags: [WeaponTag.all],
     values: {
       [Rarity.common]: 0.10
@@ -35,7 +35,7 @@ const mockCharacterStats: CharacterStats = {
   health: 100
 }
 
-const mockAvailableWeapons: Weapon[] = [
+const mockAvailableWeapons: any[] = [
   {
     id: 'weapon-1',
     name: 'Weapon One',

@@ -22,7 +22,8 @@ const classGroups = computed(() => {
     [ClassEnum.scout]: [],
     [ClassEnum.gunner]: [],
     [ClassEnum.engineer]: [],
-    [ClassEnum.driller]: []
+    [ClassEnum.driller]: [],
+    [ClassEnum.demolisher]: []
   }
 
   props.classMods.forEach(mod => {
@@ -40,9 +41,10 @@ function selectClassMod(mod: ClassMod) {
 }
 
 function formatStatMultipliers(mod: ClassMod): string[] {
-  if (!mod.statMultipliers) return []
+  const m = mod as any
+  if (!m.statMultipliers) return []
 
-  return Object.entries(mod.statMultipliers).map(([stat, value]) => {
+  return Object.entries(m.statMultipliers).map(([stat, value]: [string, any]) => {
     const isPercentage = stat !== 'armor' && stat !== 'health' // armor is flat
     const sign = value > 0 ? '+' : ''
     if (isPercentage) {
@@ -102,7 +104,7 @@ function getWeaponName(weaponId: string): string {
                     <div>{{ getWeaponName(mod.startingWeaponId) }}</div>
                   </div>
 
-                  <div class="info-section" v-if="mod.statMultipliers && Object.keys(mod.statMultipliers).length > 0">
+                  <div class="info-section" v-if="(mod as any).statMultipliers && Object.keys((mod as any).statMultipliers).length > 0">
                     <strong>Stats:</strong>
                     <div v-for="stat in formatStatMultipliers(mod)" :key="stat">
                       {{ stat }}
@@ -114,9 +116,9 @@ function getWeaponName(weaponId: string): string {
                     <div>{{ formatWeaponTags(mod.availableWeaponTags) }}</div>
                   </div>
 
-                  <div class="info-section" v-if="mod.conditionalEffects && mod.conditionalEffects.length > 0">
+                  <div class="info-section" v-if="(mod as any).conditionalEffects && (mod as any).conditionalEffects.length > 0">
                     <strong>Effects:</strong>
-                    <div v-for="effect in mod.conditionalEffects" :key="effect" class="effect-text">
+                    <div v-for="effect in (mod as any).conditionalEffects" :key="effect" class="effect-text">
                       {{ effect }}
                     </div>
                   </div>

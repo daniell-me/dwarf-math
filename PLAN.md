@@ -20,6 +20,16 @@ A **personal, pre-dive build research tool** for Deep Rock Galactic: Survivor. T
 - A public product. UX is "good enough for the author" and nothing more.
 - A point-wise level-up calculator. That premise was outgrown; do not re-introduce it.
 
+## Scope: DPS only
+
+The tool optimizes **upgrade choices for end-of-dive DPS**, and nothing else. It does not model or balance:
+- Movement speed (and the breakpoints that gate dodging certain enemies).
+- Mining speed (which gates economy / nitra income).
+- Survivability investment (shields, regen, armor).
+- Any non-DPS quality-of-life stat.
+
+These are the player's job. The heuristic gives DPS-optimal recommendations; the player mentally overrides when a non-DPS concern dominates (e.g., "I need this movement speed breakpoint even though it's low priority for DPS"). Non-DPS picks still appear in the offer model and the policy will naturally rank them low — that's the signal to the user that taking them is a deliberate non-DPS trade.
+
 ## DRG:S mechanics modeled
 
 Relevant facts for fresh agents — the model lives or dies on getting these right.
@@ -43,32 +53,37 @@ A build archetype is a tuple:
 
 - **Class** (and its implicit slot-1 weapon).
 - **Weapon roster** — the other 3 weapons the player plans to pick up.
-- **Per-weapon role** — `carry` (target level 18, target unstable OC) or `support` (target level 6 or 12, target balanced OC(s)).
-- **OC targets** per weapon — the specific OC(s) the player is hoping to roll into.
 
-The archetype space is enumerable: a small number of classes × `C(weapon-pool, 3)` rosters × role assignments. Pruning trivially dominated archetypes (e.g. 4 carries — infeasible) keeps the working set tractable.
+The archetype space is enumerable: classes × `C(weapon-pool, 3)` rosters. Pruning trivially dominated rosters keeps the working set tractable.
 
-**Not in the archetype:** stat ratios, weapon-leveling pacing, pick-order rules. Those are properties of the *policy*, which is discovered (see below).
+**Not in the archetype:** stat ratios, weapon-leveling pacing, pick-order rules, role assignments (carry vs. support), OC targets. Those are properties of the *policy*, which is discovered. Role and OC choices **emerge** from the discovered policy (see policy section). If a policy ends up pushing a weapon to 18, that weapon is a carry; if it leaves it at 6 or 12, it's support. The drill-down UI reports the emergent shape as part of each archetype's results.
 
 ## The policy (in-dive object — discovered)
 
 A policy is a function `(current_state, 3_offered_options) → chosen_option`. We parameterize it as a **linear scoring function** over offers; the policy picks the highest-scoring of the 3.
 
-**Starting parameterization** (subject to refinement once we see what the sim produces):
+**Parameterization:**
 
 ```
-score(option) =
-    w_weaponLevel       × closesWeaponLevelGap(option, archetype)
-  + w_ocUnlock          × unlocksOC(option, archetype)
-  + w_damage            × damageContribution(option)
-  + w_fireRate          × fireRateContribution(option)
-  + w_crit              × critContribution(option)
-  + w_<other stats>     × ...
+score(option, state) =
+    Σ_w∈roster  w_weaponLevel[w]   × isWeaponLevelPickFor(option, w)
+  + w_damage    × damageContribution(option, state)
+  + w_fireRate  × fireRateContribution(option, state)
+  + w_crit      × critContribution(option, state)
+  + w_<other stats> × ...
 ```
 
-The weights `w_*` may be **phase-dependent** (early / mid / late dive) — i.e. the policy is really 3 weight vectors, one per phase. Phase boundaries are themselves discoverable parameters.
+A single weight vector per policy — **no phase dependence**, no OC-conditional weight branching. The expressive power comes from the `*Contribution(option, state)` terms, not from extra weight dimensions.
 
-The **archetype** is what gives the policy something to aim at: `closesWeaponLevelGap` and `unlocksOC` are defined relative to the archetype's targets. The policy *executes* the archetype; discovery finds the weights that execute it best.
+**Contributions are state-aware.** `damageContribution(option, state)` is not "how much percent does this option add to the damage bucket" — it's "how much DPS does this option add given the current state (current OCs, current weapon levels, current stat stacks)." This is what makes a single weight vector sufficient to express:
+
+- **Diminishing returns on stacked stats.** A +20% fire rate offer at +0% fire rate is worth more (in DPS) than the same offer at +200% fire rate. The contribution function returns the right number; the weight stays the same.
+- **OC-shaped stat valuation.** If the player has just taken Thick Boy on Bulldog (which collapses all shots into one), `fireRateContribution(offer, state)` for further fire-rate offers drops near zero — the OC reshaped what the stat is worth. The policy reacts without needing OC-conditional weights.
+- **Robustness across OC uncertainty.** Because contributions react to whichever OC the dive ends up rolling, the policy doesn't have to plan around a specific OC. Stat priorities are inherently averaged across OC outcomes (you can't build *around* an OC because the OC roll is random; the policy plays what it gets).
+
+**Role is emergent from `w_weaponLevel[w]`.** A high weight on a weapon means the policy reliably picks its level-ups, pushing it toward 18 (carry behavior). A low weight leaves it stalled at 6 or 12 (support behavior). No explicit "this is a carry" parameter.
+
+**OC selection** at unlock milestones (6/12/18) is greedy on current-state contribution: when 2 OCs are offered, the sim picks the one with the higher immediate DPS contribution given current state. No additional policy weights needed for OCs in v1. (If discovery reveals this is wrong — e.g., a "worse-now" OC is genuinely better long-term — add per-OC weights later.)
 
 ## The simulator (inner loop)
 
@@ -79,29 +94,122 @@ Given (archetype, policy weights, meta state, seed), simulate a single dive:
    a. Sample 3 offers from the **offer model** (see below).
    b. Apply policy: score each offer, pick the highest.
    c. Update state (weapon levels, stats).
-   d. If a weapon hits an OC milestone (6, 12, 18), sample 2 OCs from that weapon's pool. Take the archetype's target if offered; else fall back to a ranked second-best (rank source: authored data per weapon).
+   d. If a weapon hits an OC milestone (6, 12, 18), sample 2 OCs from that weapon's pool. Pick the one with the higher immediate DPS contribution given current state (greedy). See policy section for why OC choice is not policy-parameterized in v1.
 3. Compute final DPS at end of dive.
 
-**Outputs per sim run:** final DPS (single-target + swarm via per-weapon target-count modifier, inherited from prior plan), OC hit-rate, weapon-level targets achieved, full trajectory.
+**Outputs per sim run:** final DPS (single-target + swarm via per-weapon target-count modifier, inherited from prior plan), full trajectory (per-level pick log + emergent weapon levels reached).
+
+## Monte Carlo evaluation (scoring a policy)
+
+A single sim run is one sample from a noisy distribution — the offer randomness means the same policy plays out very differently across seeds. To score a policy, run it `K` times with different random seeds and summarize the resulting DPS distribution. This is a **Monte Carlo** estimate of the policy's expected value: random draws in, distribution out, summarized into a score.
+
+**K (number of seeds).** Hardcoded in config. Start at `K = 100`. Tune empirically — if doubling K materially changes the rankings of top policies, K was too low.
+
+**Common Random Numbers (CRN).** Use a **fixed list of seeds** (e.g. `[1, 2, …, K]`) reused across every candidate policy for a given archetype. This means policy A and policy B both face the same offer rolls; the only difference in their scores is the policy itself, not luck. Variance between policies drops sharply — small true differences become detectable.
+
+The sim must therefore consume randomness from a **seeded RNG**, not `Math.random()`. A single seeded stream is sufficient for v1; per-concern stream isolation can be added later if CRN benefit looks weaker than expected.
+
+**Score = weighted sum of percentiles** of final DPS across the K runs:
+
+```
+score(policy) = 0.25 · P20(DPS) + 0.5 · P50(DPS) + 0.25 · P90(DPS)
+```
+
+- `P50` (median) — the typical dive.
+- `P20` — the reliability floor; what most dives at least clear.
+- `P90` — the upside ceiling.
+
+Weights live in config. Default `(0.25, 0.5, 0.25)` biases toward the typical case while still rewarding floor and ceiling. No penalty for missed OC unlocks — the archetype no longer specifies OC targets (role and OC are emergent).
+
+**Leaderboard reports all three percentiles** as separate columns plus the combined score. The spread between `P20` and `P90` doubles as an uncertainty signal: archetypes with overlapping `P20`–`P90` ranges are effectively tied, even if their combined scores differ slightly.
+
+### What we're explicitly *not* doing in v1
+
+Deferred until a concrete failure motivates them:
+
+- **Train/test split on seeds.** Risk of overfitting policies to the fixed seed batch. Mitigation if it shows up: bump K, or evaluate top finalists on a fresh held-out seed batch.
+- **Stream isolation per concern.** Mitigation if CRN benefit is weaker than hoped: separate RNG streams for offer draws, OC draws, rarity rolls.
+- **Two-stage K** (low K for wide search, high K for re-ranking finalists).
+- **Pareto / multi-objective optimization** across the three percentiles.
+
+These are all real techniques in the simulation literature; none are necessary upfront for a personal tool. Add them when a specific observed problem demands them.
 
 ## The discovery layer (outer loop)
 
 For each archetype:
 
-1. Define the policy parameter space (weights, phase boundaries).
+1. Define the policy parameter space (per-weapon level weights + per-stat weights — one flat weight vector).
 2. Search the space — start with random sampling + top-K refinement; upgrade to Bayesian optimization or evolutionary search only if necessary.
-3. For each candidate policy, run `K` sim seeds. Score = median (or some percentile) of final DPS, with a soft penalty for missing carry OC targets.
+3. Score each candidate policy via **Monte Carlo evaluation** (see section above): K sim seeds with CRN, weighted-percentile score.
 4. Return the best policy and its score distribution.
 
-The result per archetype is `(best_policy_weights, score_distribution, representative_trajectories)`.
+The result per archetype is `(best_policy_weights, score_distribution, representative_trajectories)`. Translation of the policy into a player-usable heuristic is its own step — see **Heuristic translation** below.
 
-**Heuristic translation.** A policy's weights are translated into human-readable rules at output time, e.g.:
+## Heuristic translation
 
-- "Until level 15, take any weapon-level pick for your slot-2 weapon."
-- "From level 15 to 30, prioritize damage > fire rate > crit on global stats."
-- "Skip crit until your first carry is at level 12."
+This is the deliverable. The discovered policy is a scoring function; the player can't execute a scoring function in their head. The translation layer turns the policy into a small, memorable artifact the player carries into a dive.
 
-This translation layer is the deliverable — it's what makes the sim useful as a heuristic-bootstrap tool. It is a non-trivial design problem in its own right.
+### Format
+
+Per-weapon **target display values** — the same numbers DRG:S shows on the weapon stat screen, so the player can read off current values mid-dive and compare directly. Plus a small OC preference block and a one-line lag-chase rule.
+
+Example output for one archetype:
+
+```
+Class: Gunner   Roster: Bulldog / Leadstorm / Coilgun
+Scope: DPS only. Override for movement/survival as needed.
+
+Bulldog  (push to 18 — carry)
+  Reload time     1.2s
+  Fire rate       5.6 / sec
+  Damage / shot   850
+  Crit chance     45%
+
+Leadstorm  (push to 12 — support)
+  Reload time     1.8s
+  Fire rate       42 / sec
+  Damage / shot   18
+  Crit chance     45%
+
+Coilgun  (push to 6 — support)
+  Reload time     2.0s
+  Damage / charge 1200
+
+OC preferences (take leftmost if multiple offered):
+  Bulldog:    Thick Boy > Bullet Hell > Six-Shooter
+  Leadstorm:  Hose Down > Stabby Time
+  Coilgun:    (any)
+
+Take offers that move you toward unmet targets.
+Skip stats your carry is already at/above target on.
+```
+
+### Extraction: behavioral, not weight-thresholded
+
+Targets are derived from the policy's **observed behavior**, not from inspecting weights:
+
+1. Run the discovered policy through K sim trajectories (reuse the Monte Carlo evaluation seeds).
+2. Aggregate end-state across the K runs:
+   - Per-stat-bucket: average final bonus (e.g., "+178% fire rate on average").
+   - Per-weapon: distribution of final levels (mode = the level shown in the heuristic).
+3. For each weapon in the roster, apply the averaged bonuses to that weapon's base stats and compute the **derived display values** (reload time, fire rate, damage/shot, etc.) using the same formulas the game uses.
+4. Determine **OC preferences** from observed sim choices: for each weapon's OC pool, rank by how often the policy picked each OC at its unlock milestone across the K runs.
+
+Why behavioral rather than weight-thresholded: weights alone can't tell you when a stat hits diminishing returns. The policy's *behavior* (where it actually lands) does, because the state-aware contribution function naturally pushes the policy off a stat once that stat is saturated. The behavioral aggregate captures that endpoint directly.
+
+### What the player does mid-dive
+
+1. Open the weapon stat screen. Read current values for the carry weapon.
+2. See offers. For each, ask: "Does this move my carry toward an unmet target?"
+3. If yes, take it. If the carry is already at/above target on every stat the offer touches, skip it (even for legendary rarity).
+4. Weapon-level offers: take per the `push to X` annotation.
+5. OC offers: take leftmost in the preference list if multiple offered; otherwise take the one offered.
+
+The "carry-dominant" framing (drive decisions by the carry's stats, not all three weapons) is left implicit — players grasp it without being told.
+
+### Glass-box
+
+The drill-down view shows the raw policy weights and a sample trajectory beneath the heuristic. When the heuristic feels wrong or the targets seem off, the player can drop down a level and inspect what the policy is actually doing.
 
 ## The offer model (the load-bearing assumption)
 
@@ -128,11 +236,12 @@ Minimal local Vue page. Single-page, weapon-first.
 - Run button.
 
 **Body:**
-- **Archetype leaderboard.** Top-N archetypes ranked by score. Columns: class + roster summary, role assignments, OC targets, score (median DPS), OC hit-rate, one-line headline ("Gunner / Leadstorm + Bulldog carries").
+- **Archetype leaderboard.** Top-N archetypes ranked by combined score. Columns: class + roster summary, combined score, `P20` / `P50` / `P90` DPS, emergent roles summary ("Bulldog carry, Leadstorm support"), one-line headline.
 - **Drill-down on click.** For a selected archetype:
-  - Full archetype detail (weapons, roles, OC targets).
-  - Discovered policy → translated heuristic ("rules of thumb" view, in plain English).
-  - Score distribution histogram.
+  - Roster detail (class + 3 weapons).
+  - **Translated heuristic** (per-weapon target display values, OC preferences, lag-chase rule — see Heuristic translation section).
+  - **Emergent shape:** which weapons the discovered policy actually pushed to 18 / 12 / 6, and which OCs it most commonly took.
+  - Score distribution histogram (the K Monte Carlo samples).
   - Sample winning trajectory (per-level pick log).
   - Glass-box: the raw policy weights, the offer-model assumptions used, the seed for the trajectory shown.
 
@@ -159,15 +268,16 @@ Slices are sized for a fresh agent to be briefed against. They are coarse — re
 - Done when: for a chosen archetype, running the sim 100 times produces a stable, interpretable DPS distribution that roughly matches the author's intuition for that build.
 
 ### Slice 3 — Discovery layer
-- Parameterize the policy (linear scoring function with optional phase weights).
+- Parameterize the policy (one flat weight vector: per-weapon level weights + per-stat weights).
 - Implement random sampling + top-K refinement over policy weights.
 - For one archetype, produce a discovered policy whose score beats the hand-coded baselines from Slice 2.
 - Done when: discovery reliably finds better-than-baseline policies for a fixed archetype.
 
 ### Slice 4 — Heuristic translation
-- Translate discovered policy weights into a readable rule set ("until level X, prioritize Y").
-- This is a design problem — likely iterate by reading discovered weights and writing a translator that captures the patterns.
-- Done when: reading the translated heuristic for an archetype feels useful and actionable to the author.
+- Implement the behavioral extraction pipeline: run the discovered policy through K sims, aggregate end-state stats and weapon levels, derive per-weapon display values from base stats.
+- Compute OC preferences from observed sim choices (how often each OC was picked at unlock).
+- Render the heuristic in the format defined in **Heuristic translation** above (per-weapon target values + OC preferences + lag-chase rule).
+- Done when: reading the translated heuristic for an archetype gives the author actionable mid-dive guidance (i.e., they can look at their in-game stat screen and know what to take).
 
 ### Slice 5 — Archetype enumeration + leaderboard
 - Enumerate plausible archetypes (prune obviously-dominated ones).
@@ -184,11 +294,12 @@ Slices are sized for a fresh agent to be briefed against. They are coarse — re
 These need answering as we go; the doc should be updated when they're settled.
 
 1. **Offer model fidelity.** How wrong is the initial hand-authored distribution? Plan for substantial revisions as we learn.
-2. **Policy parameterization.** Linear scoring is the v1 bet. Is it expressive enough? Likely needs phase-dependence; possibly needs non-linearity (e.g. "take OC unlock at any cost"). Iterate.
+2. **Policy parameterization.** Linear scoring with a single weight vector and state-aware contributions is the v1 bet. Phase-dependence and OC-conditional weights were explicitly considered and dropped — revisit only if discovered policies feel underpowered for early or late dive specifically.
 3. **Discovery method.** Random + top-K is the v1 bet. May need to upgrade to Bayesian / evolutionary if the search becomes too expensive or too noisy.
-4. **Heuristic translation.** Genuine open design problem. Worth prototyping early on a single discovered policy to see what shape the rules take.
-5. **Weapon pool data.** Full per-weapon stats and per-weapon OC pools need to be authored. Scope unknown until inventoried.
-6. **Pick budget.** Default 60 is a guess. Revisit when the author's first archetype is fully modeled.
+4. **OC selection at unlock.** v1 uses greedy on current-state DPS contribution. May be wrong if a "worse-now" OC is genuinely better long-term; if so, add per-OC weights to the policy.
+5. **Heuristic translation accuracy.** The behavioral-extraction approach assumes the policy's *typical* outcome is what the player should aim for. Variance across dives is handled by the lag-chase rule, but extreme luck cases (legendary early) might shift play meaningfully. Watch for cases where the targets don't match good play.
+6. **Weapon pool data.** Full per-weapon stats, OC pools, and display-value derivation formulas need to be authored. Scope unknown until inventoried.
+7. **Pick budget.** Default 60 is a guess. Revisit when the author's first archetype is fully modeled.
 
 ## What this replaces
 

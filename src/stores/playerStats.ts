@@ -72,9 +72,9 @@ export const usePlayerStatsStore = defineStore('playerStats', () => {
         values.push(flatBonus)
       }
 
-      // Meta upgrades (both percentage and flat)
+      // Meta upgrades
       for (const metaUpgrade of metaUpgrades) {
-        if (metaUpgrade.stat === statId) {
+        if (metaUpgrade.statId === statId) {
           const level = metaStore.levels[metaUpgrade.id] ?? 0
           if (level > 0) {
             const bonus = metaUpgrade.bonusValues[level - 1] ?? 0
@@ -85,11 +85,10 @@ export const usePlayerStatsStore = defineStore('playerStats', () => {
         }
       }
 
-      // Class mod bonuses
-      if (classMod.statMultipliers?.[statId as keyof CharacterStats] !== undefined) {
-        const classModValue = classMod.statMultipliers[statId as keyof CharacterStats]!
-        if (classModValue !== 0) {
-          values.push(classModValue)
+      // Class mod bonuses — iterate effects, contribute matching stat values
+      for (const eff of classMod.effects) {
+        if (eff.kind === 'stat' && eff.stat === statId && eff.value !== 0) {
+          values.push(eff.value)
         }
       }
 
