@@ -30,6 +30,40 @@ The tool optimizes **upgrade choices for end-of-dive DPS**, and nothing else. It
 
 These are the player's job. The heuristic gives DPS-optimal recommendations; the player mentally overrides when a non-DPS concern dominates (e.g., "I need this movement speed breakpoint even though it's low priority for DPS"). Non-DPS picks still appear in the offer model and the policy will naturally rank them low — that's the signal to the user that taking them is a deliberate non-DPS trade.
 
+## Architecture
+
+Two processes, two languages, one HTTP boundary.
+
+**UI client (existing Vue + TypeScript app):**
+- Owns the data layer (`src/data/*.ts` — weapons, OCs, stat definitions, offer model). This is where typed authored data lives and stays.
+- Owns the UI (`src/views/`, `src/components/`) — input controls, leaderboard, drill-down, score histograms.
+- Orchestrates: when the user clicks "Run", the client POSTs the config to the sim service and renders the response.
+
+**Sim service (new Rust binary):**
+- Owns the inner sim loop, the discovery search, and the Monte Carlo evaluation.
+- Exposes an HTTP API. Minimum shape: `POST /run { class, roster, meta_state, sim_config } → { leaderboard, trajectories, policy_weights, … }`. Schema to be defined in Slice 2.
+- Multi-threaded via `rayon`. Parallelizes across seeds within a policy and across candidate policies within an archetype.
+- Compiled natively per host (no WASM — we want full SIMD/AVX and zero sandbox overhead).
+
+**Why this shape:**
+- The sim's hottest loop is numeric and benefits enormously from native code + multi-threading. On the author's 9800X3D, a well-threaded Rust sim is ~100–200x faster than the current TS path. That headroom is what lets `K` go from ~200 to ~20,000 if discovery quality demands it.
+- Splitting at HTTP keeps the languages cleanly separated. Each side compiles and tests independently.
+- The boundary is small (one request/response schema) and stable (`(archetype, config) → results`), so the interface doesn't churn even as either side evolves.
+
+**Data-layer flow.** TS remains the source of truth for authored data (weapons, OCs, stats, offer model). At build time (or on demand) the TS data layer exports a JSON snapshot the Rust service loads at startup. This avoids duplicating authored data in two languages.
+
+**Cross-machine workflow.**
+- **Dev on the MacBook:** sim binary built for arm64 macOS, runs locally. Vue talks to `localhost`.
+- **Full discovery runs on the Windows PC:** sim binary built for Windows, runs as a local HTTP server on the PC. Vue UI either runs on the PC too (it's just static files) or on the Mac pointing at the PC's IP over the local network. Either way the heavy compute runs where the cores are.
+- Long-running discovery is fire-and-forget — kick off the request from the UI, let the PC chew on it, inspect results later.
+
+**Explicitly deferred:**
+- **GPU compute** (CUDA / WebGPU). The sim's control flow (per-pick branching on weapon/offer/OC state) is hostile to SIMT execution — significant warp divergence would eat most of the gains. Re-evaluate only if the 8-core Rust path proves insufficient at the K values we end up wanting.
+- **WASM build of the sim**. Drops ~1.5–2x perf vs. native and complicates threading. Only worth doing if we ever need browser-side sim execution (e.g., for shareable demos), which is not a v1 goal.
+- **Cloud / distributed sim** across multiple machines. Single-machine on the 9800X3D is plenty for any K we'd plausibly want.
+
+The CLAUDE.md preferences (TS data files, decimal percentages, App.vue styles, `npm run type-check` + `npm run test:run` gates) apply to the TS+Vue side. The Rust service has its own conventions to be established in Slice 2 (`cargo fmt`, `cargo clippy`, `cargo test`).
+
 ## DRG:S mechanics modeled
 
 Relevant facts for fresh agents — the model lives or dies on getting these right.
@@ -87,7 +121,7 @@ A single weight vector per policy — **no phase dependence**, no OC-conditional
 
 ## The simulator (inner loop)
 
-Given (archetype, policy weights, meta state, seed), simulate a single dive:
+Implemented in the Rust sim service (see **Architecture**). Given (archetype, policy weights, meta state, seed), simulate a single dive:
 
 1. Initialize state: starting weapon, meta-modified base stats, 0 picks taken.
 2. For each level-up `1..N` (default `N = 60`, configurable):
@@ -257,15 +291,18 @@ The UI provides a simple editor for meta state. Persistence is local (localStora
 
 Slices are sized for a fresh agent to be briefed against. They are coarse — refine as we go.
 
-### Slice 1 — Foundations
-- Finish the in-flight stat-system migration (`src/stores/playerStats.ts`, `src/stores/weaponSlotStats.ts`) enough that the sim has a clean substrate for "apply a bucket of stats, get a DPS number." Land the in-game-values bugfix on the current branch.
-- This is genuinely a prerequisite for everything else — the sim's atomic operation is `state + pick → new state + new DPS`, and that operation needs to be correct.
+### Slice 1 — Foundations (TS side)
+- Finish the in-flight stat-system migration (`src/stores/playerStats.ts`, `src/stores/weaponSlotStats.ts`) enough that DPS can be computed from a stat bucket correctly. Land the in-game-values bugfix on the current branch.
+- This is the substrate the Rust sim will mirror — getting the math right here means the Rust port has a known-correct reference.
+- Add a JSON export step that snapshots the TS data layer (weapons, OCs, stat definitions, offer model) to a file the Rust service can load at startup.
 
-### Slice 2 — Offer model + single-archetype simulator
+### Slice 2 — Offer model + Rust sim service (single-archetype)
 - Author a first-cut offer model (`src/data/offerModel.ts`).
-- Implement the inner sim loop: given (archetype, policy weights, seed), return final DPS + trajectory.
-- Hand-code 1–2 toy policies for sanity-checking. No discovery yet.
-- Done when: for a chosen archetype, running the sim 100 times produces a stable, interpretable DPS distribution that roughly matches the author's intuition for that build.
+- Stand up the Rust sim crate. Set up `cargo`, the HTTP server (`axum` or similar), and the JSON request/response schema shared with the TS client.
+- Port the DPS / stat-bucket math from Slice 1's TS into Rust. Validate parity against the TS reference for a handful of fixed inputs (regression test).
+- Implement the inner sim loop in Rust: given (archetype, policy weights, seed), return final DPS + trajectory.
+- Hand-code 1–2 toy policies in the request payload for sanity-checking. No discovery yet.
+- Done when: for a chosen archetype, the Vue UI can POST to the sim service and receive a stable, interpretable DPS distribution from 100 sim runs that roughly matches the author's intuition for that build.
 
 ### Slice 3 — Discovery layer
 - Parameterize the policy (one flat weight vector: per-weapon level weights + per-stat weights).
